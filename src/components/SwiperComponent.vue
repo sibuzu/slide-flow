@@ -34,6 +34,14 @@ let observer = null
 const isMobile = ref(false)
 const isFullscreen = ref(false)
 
+const swiperDirection = computed(() => {
+    const style = rotationStyles.value[activeIndex.value]
+    if (style && style.transform && style.transform.includes('rotate')) {
+        return 'vertical'
+    }
+    return 'horizontal'
+})
+
 const emitRotationStatus = () => {
     const style = rotationStyles.value[activeIndex.value]
     const isRotated = style && style.transform && style.transform.includes('rotate')
@@ -170,6 +178,7 @@ onUnmounted(() => {
     <div class="w-full h-full relative">
         <swiper 
             :modules="modules"
+            :direction="swiperDirection"
             :slides-per-view="1" 
             :space-between="0" 
             effect="fade"

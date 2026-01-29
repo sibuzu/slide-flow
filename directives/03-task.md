@@ -55,3 +55,5 @@
 - [x] **Phase 14: 按鈕旋轉支援** <!-- id: 52 -->
     - [x] `SwiperComponent.vue`: Emit `rotationChanged` event <!-- id: 53 -->
     - [x] `SlideViewer.vue`: Apply rotation styles to Prev/Next buttons <!-- id: 54 -->
+- [x] **Phase 15: 滑動手勢旋轉支援** <!-- id: 55 -->
+    - [x] `SwiperComponent.vue`: Bind `:direction` to computed property <!-- id: 56 -->

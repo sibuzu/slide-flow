@@ -111,6 +111,12 @@
         - Prev: `top-8 left-1/2 -translate-x-1/2 rotate-90`.
         - Next: `bottom-8 left-1/2 -translate-x-1/2 rotate-90`.
 
+### 14. 滑動手勢旋轉支援 (Gesture Rotation Support) [NEW]
+- **SwiperComponent.vue**:
+    - Detect current rotation state.
+    - Dynamically switch Swiper `direction` prop between `horizontal` (default) and `vertical` (rotated).
+    - Bind `:direction` to computed property.
+
 ## 驗證計畫 (Verification Plan)
 1. **Dev**: Mobile Fullscreen Test.
-2. **Review**: Ensure buttons move to logical "Left/Right" (Visually Up/Down) when rotated.
+2. **Gesture**: Try swiping Up/Down on rotated slide. Should change slide.

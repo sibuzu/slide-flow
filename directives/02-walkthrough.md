@@ -1,6 +1,18 @@
 # SlideFlow 開發與重構紀錄 (Walkthrough)
 
-## 最新更新：Refactor - 按鈕旋轉支援 (Phase 14)
+## 最新更新：Refactor - 滑動手勢旋轉支援 (Phase 15)
+
+**目標**: 當進入「偽旋轉」模式時，滑動手勢方向應與視覺上的「上一頁/下一頁」一致。
+
+**實作**:
+- **Gesture Sync**: `SwiperComponent` 偵測當前旋轉狀態 (`swiperDirection`)。
+    -   **Normal**: `direction="horizontal"`.
+    -   **Rotated**: `direction="vertical"`.
+-   **效果**: 使用者在直立手機上「上下滑動」螢幕，即可切換投影片 (視覺上為左右切換)。
+
+---
+
+## 歷史更新：Refactor - 按鈕旋轉支援 (Phase 14)
 
 **目標**: 當手機進入「偽旋轉 (Pseudo-rotation)」模式時，導航按鈕位置與方向應同步調整，以符合視覺上的「橫向」操作體驗。
 
@@ -9,8 +21,6 @@
 - **Dynamic Positioning**: `SlideViewer` 根據旋轉狀態動態切換按鈕 CSS Class：
     -   **Normal**: 左右置中 (`top-1/2 left/right-4`).
     -   **Rotated**: 上下置中 (`top-24/bottom-16 left-1/2`) 並旋轉 90 度 (`rotate-90`).
-
----
 
 ## 歷史更新：Refactor - 手機旋轉 CSS 精煉 (Phase 13)
 
