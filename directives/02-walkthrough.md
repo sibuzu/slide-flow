@@ -1,6 +1,18 @@
 # SlideFlow 開發與重構紀錄 (Walkthrough)
 
-## 最新更新：Refactor - 滑動手勢旋轉支援 (Phase 15)
+## 最新更新：Refactor - 導航體驗優化 (Instant Navigation)
+
+**目標**: 消除投影片切換時的疊圖殘影 (Ghosting/Overlap) 以及手勢操作的不順暢感。
+
+**修正**:
+1.  **Remove Fade Effect**: 移除所有淡入淡出特效，改為 **Speed 0 (Instant Transition)**。
+    -   效果：切換投影片時如按鈕般即時反應，無過場動畫，徹底解決疊圖問題。
+2.  **Absolute Positioning**: 將偽旋轉圖片的定位由 `fixed` 改為 `absolute`，確保其受 Swiper 容器控制。
+3.  **Explicit Direction Control**: 使用 `swiper.changeDirection()` 明確控制滑動方向切換。
+
+---
+
+## 歷史更新：Refactor - 滑動手勢旋轉支援 (Phase 15)
 
 **目標**: 當進入「偽旋轉」模式時，滑動手勢方向應與視覺上的「上一頁/下一頁」一致。
 
@@ -9,8 +21,6 @@
     -   **Normal**: `direction="horizontal"`.
     -   **Rotated**: `direction="vertical"`.
 -   **效果**: 使用者在直立手機上「上下滑動」螢幕，即可切換投影片 (視覺上為左右切換)。
-
----
 
 ## 歷史更新：Refactor - 按鈕旋轉支援 (Phase 14)
 

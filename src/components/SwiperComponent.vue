@@ -5,7 +5,7 @@ import { Navigation, Pagination, Keyboard, EffectFade } from 'swiper/modules';
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
-import 'swiper/css/effect-fade';
+import 'swiper/css/pagination'
 
 const props = defineProps({
   slides: {
@@ -188,10 +188,9 @@ onUnmounted(() => {
             :direction="swiperDirection"
             :observer="true"
             :observe-parents="true"
+            :speed="0"
             :slides-per-view="1" 
             :space-between="0" 
-            effect="fade"
-            :fade-effect="{ crossFade: true }"
             :pagination="{ clickable: true }"
             :keyboard="{ enabled: true, onlyInViewport: false, pageUpDown: true }"
             class="w-full h-full"
