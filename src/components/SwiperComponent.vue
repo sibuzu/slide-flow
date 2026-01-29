@@ -84,13 +84,14 @@ const checkRotation = (index) => {
             height: '100vw',
             transform: 'rotate(90deg)',
             transformOrigin: 'center center',
-            position: 'fixed',
+            transformOrigin: 'center center',
+            position: 'absolute',
             top: '50%',
             left: '50%',
             translate: '-50% -50%',
             maxWidth: 'none',
             maxHeight: 'none',
-            zIndex: '9999',
+            zIndex: '10', // 9999 is excessive inside a slide
             objectFit: 'contain',
             backgroundColor: '#000'
         }
@@ -154,6 +155,12 @@ watch(() => props.slides, () => {
 
 watch(() => rotationStyles.value[activeIndex.value], emitRotationStatus, { deep: true })
 watch(activeIndex, emitRotationStatus)
+watch(swiperDirection, (newDir) => {
+    if (swiperInstance) {
+        swiperInstance.changeDirection(newDir)
+        swiperInstance.update()
+    }
+})
 
 onMounted(() => {
     window.addEventListener('keydown', handleKeydown)
@@ -179,9 +186,12 @@ onUnmounted(() => {
         <swiper 
             :modules="modules"
             :direction="swiperDirection"
+            :observer="true"
+            :observe-parents="true"
             :slides-per-view="1" 
             :space-between="0" 
             effect="fade"
+            :fade-effect="{ crossFade: true }"
             :pagination="{ clickable: true }"
             :keyboard="{ enabled: true, onlyInViewport: false, pageUpDown: true }"
             class="w-full h-full"
