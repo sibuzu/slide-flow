@@ -201,5 +201,7 @@ swiper.on('sliderMove', (s, event) => {
 
 3. 若是要 commit, 請加上詳細的中文 commit message。
 
+4. 將專案 build, deploy 等步驟，寫到 README.md 中。
+
 
    
