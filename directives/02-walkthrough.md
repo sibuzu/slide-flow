@@ -1,6 +1,17 @@
 # SlideFlow 開發與重構紀錄 (Walkthrough)
 
-## 最新更新：UI 風格重構與淺色主題 (UI Redesign)
+## 最新更新：Fix - 路由模式切換 (Router Hash Mode)
+
+**問題**: 使用 `createWebHistory` 搭配相對路徑 `base: './'` 時，若使用者在巢狀路由 (如 `/chapters/AlwaysRobusInfo`) 重新整理頁面，瀏覽器會嘗試從該層級讀取相對路徑資源 (`/chapters/assets/...`)，導致 404 錯誤。
+
+**解決**: 改用 `createWebHashHistory` (Hash Mode)。
+- 網址結構變為 `/#/chapters/...`。
+- 瀏覽器始終向 `index.html` 請求資源，確保相對路徑 (`./assets/...`) 正確解析。
+- **好處**: 完美支援靜態部署與相對路徑設定。
+
+---
+
+## 歷史更新：UI 風格重構與淺色主題 (UI Redesign)
 
 本次更新將介面風格從深色模式重構為 **Sibuzu 風格的淺色主題 (Light Theme)**，提升專業感與閱讀體驗。
 
@@ -24,7 +35,7 @@
     - `ChapterView` 成為 Subgroup 投影片的標準入口。
     - `SlideViewer` 在章節結尾提供明確的「下一章」引導。
 
-### 3. 圖片優化 (Image Optimization) [NEW]
+### 3. 圖片優化 (Image Optimization)
 
 - **WebP 轉換**: 
     - 實作此構建腳本 (`scripts/optimize-images.mjs`)，在 `npm run build` 時自動將 PNG 轉換為 WebP。
@@ -35,7 +46,7 @@
 - **前端適配**:
     - 實作 `getImagePath` helper，在生產環境自動切換至 `.webp`，開發環境維持 `.png`。
 
-### 4. 動態發現 (Dynamic Discovery) [NEW]
+### 4. 動態發現 (Dynamic Discovery)
 
 - **Vite Plugin**:
     - 實作 `plugins/vite-plugin-slides.js` 取代舊有的 Python 腳本。
