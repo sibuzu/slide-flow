@@ -65,13 +65,38 @@
 - **SwiperComponent.vue**:
     - 實作 **Blur-up Loading**: 優先顯示模糊的 Placeholder，圖片載入完成後淡入主圖。
 
+### 10. 進階顯示與手機支援 (Advanced Display & Mobile Support) [NEW]
+- **scripts/optimize-images.mjs**:
+    - **Image Gen Update**:
+        - Limit Max Size: 1920x1920 (`fit: inside`), Quality 75.
+        - Generate `mobile.webp` (800w) and `tiny.webp` (20px, LQIP).
+- **Backend Logic (Build)**:
+    - Main output: `desktop.webp` (1920w), `mobile.webp` (800w), `tiny.webp` (20px). (Replaces old `-small` naming if needed, or mapping strategy).
+- **utils/image.js**:
+    - Return `srcset` object: `{ src, srcset, placeholder }`
+    - `srcset`: "mobile.webp 800w, desktop.webp 1920w".
+- **SwiperComponent.vue**:
+    - **Multi-resolution**: Use `srcset` or `picture` element for responsive loading.
+    - **Lazy Loading**: Integrate `Intersection Observer` logic to trigger image loading only when slide is near viewport (if `loading="lazy"` insufficient or for explicit placeholder swap control).
+    - **Mobile Rotation**:
+        - Detect if device is mobile (`< 768px`) + Fullscreen mode.
+        - If image aspect ratio (or `orient`) mismatches viewport aspect ratio (e.g. Landscape Image on Portrait Phone), apply CSS `transform: rotate(90deg)` to maximize screen usage.
+
+### 11. 影像策略精煉 (Refining Image Strategy) [NEW]
+- **scripts/optimize-images.mjs**:
+    - **Simplification**:
+        - Remove distinct `mobile` (800px) generation.
+        - Use `1920px` (Q75) for both Desktop and Mobile.
+        - Increase LQIP size to `200px` (rename/use as `-small.webp`).
+- **utils/image.js**:
+    - Remove `srcset`. Return `{ src: '1920w', placeholder: '200w' }`.
+- **SwiperComponent.vue**:
+    - Remove `srcset` binding.
+    - Continue utilizing Lazy Loading & Mobile Rotation.
+
 ## 驗證計畫 (Verification Plan)
-1. **Dev**: `npm run dev`
-    - 檢查 URL 是否隨投影片切換變更。
-    - 檢查投影片是否填滿可用空間。
-    - 檢查載入時是否有模糊過渡效果 (Dev 模式下可能不明顯，僅驗證不報錯)。
-2. **Build Sync**:
-    - `npm run build`。
-    - 檢查 `dist/sliders` 下是否生成主圖與 `-small.webp` 縮圖。
-    - 檢查主圖大小是否顯著縮小 (Resize 1280 Q70)。
-    - `npm run preview` 驗證載入速度與過渡效果。
+1. **Build**: `npm run build`
+    - Check output: `dist/sliders` should contain `*.webp` (1920) and `*-small.webp` (200).
+    - Check absence of `*-mobile.webp` and `*-tiny.webp`.
+2. **Review**: `npm run preview`
+    - Verify image quality and loading behavior.

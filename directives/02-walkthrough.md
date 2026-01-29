@@ -1,21 +1,33 @@
 # SlideFlow 開發與重構紀錄 (Walkthrough)
 
-## 最新更新：Fix - 封面圖片顯示 (Cover Image)
+## 最新更新：Refactor - 影像策略精煉 (Phase 12)
 
-**問題**:
-1.  **圖片破損**: 在實作效能優化 (Phase 10) 後，`getImagePath` 改為回傳物件 `{ src, placeholder }`，導致 `ChapterView` 與 `HomeView` 直接綁定物件至 `img.src` 而失效。
+**目標**: 簡化影像生成策略，並提升預覽圖品質。
 
-**解決**:
-1.  **Frontend Logic**: 更新 `src/views/ChapterView.vue` 與 `src/views/HomeView.vue`，將 `:src="getImagePath(...)"` 修正為 `:src="getImagePath(...).src"`。
-    - 確保在 Production 模式下正確讀取優化後的 WebP 路徑。
+**變更**:
+1.  **Unified Resolution**: 統一使用 **1920px (Q75)** 作為 Desktop 與 Mobile 的標準影像，移除額外的 `mobile` (800w) 版本。
+2.  **Better LQIP**: 將佔位符 (Placeholder) 尺寸從 20px 提升至 **200px (Q50)**，提供更清晰的模糊預覽 (`-small.webp`)。
+3.  **Cleanup**: 移除 `srcset` 相關邏輯與檔案 (`-tiny`, `-mobile`)。
 
 ---
 
+## 歷史更新：Feature - 進階顯示與手機支援 (Phase 11)
+
+**目標**: 高畫質、Lazy Loading、手機旋轉適配。
+
+**實作**:
+- **Multi-resolution**: 支援 1920px 高解析度。
+- **Frontend Display**: 實作 Lazy Loading (Intersection Observer) 與 Blur-up。
+- **Mobile Rotation**: 全螢幕直向觀看橫圖時自動旋轉。
+
+## 歷史更新：Fix - 封面圖片顯示 (Cover Image)
+
+**Fix**: 修正 `getImagePath` 回傳物件導致的封面顯示錯誤。
+
 ## 歷史更新：Perf - 效能優化 (Resize & LQIP)
 
-**Image Resize**: 1280x1280 (Inside Fit), Quality 70。
-**LQIP**: 48px Tiny Thumbnail。
-**Blur-up Loading**: 漸進式模糊載入效果。
+**Image Resize**: 1280x1280 -> 提升至 1920x1920 (Phase 11/12)。
+**LQIP**: 48px -> 20px (Phase 11) -> 200px (Phase 12)。
 
 ## 歷史更新：Build - 建置同步與清理
 
@@ -28,11 +40,12 @@
 
 ## 歷史更新：Fix - 路由響應性與導航修正
 
+- **路由模式**: Hash Mode (`/#/`).
 - **路由響應**: `watch(route.params)`。
 
 ## 歷史更新：Feature - 版面最大化與路由優化
 
-- **版面**: Full Screen。
+- **版面**: Full Screen `w-full h-full`。
 - **路由**: Redirect / Default Query。
 
 ## 歷史更新：Feature - 導航同步與增強
@@ -43,11 +56,6 @@
 ## 歷史更新：Fix - 導航控制與投影片篩選
 
 - **投影片篩選**: 嚴格排除 `cover.*`。
-
-## 歷史更新：Fix - 章節封面與路由修正
-
-- **章節封面**: Subgroup 章節顯示封面。
-- **路由模式**: Hash Mode (`/#/`)。
 
 ## 歷史更新：UI 風格與核心重構
 

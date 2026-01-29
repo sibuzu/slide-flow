@@ -17,19 +17,16 @@ async function convertToWebp() {
         }
 
         // Find all PNG files in public/sliders or dist/sliders
-        // Since vite processes public files to dist, we can process dist directly or source -> dist
-        // Recommendation: Source -> Dist overwriting/adding webp
-
-        // Let's scan public directory to find source structure
         const files = await glob(`${inputDir}/**/*.png`);
 
         console.log(`Found ${files.length} PNG files to optimize.`);
 
         for (const file of files) {
             const relativePath = path.relative(inputDir, file);
-            // Construct target path in dist with .webp extension
+            // Construct target paths
             const targetPath = path.join(outputDir, relativePath).replace(/\.png$/i, '.webp');
             const targetSmallPath = targetPath.replace(/\.webp$/, '-small.webp');
+
             const targetFolder = path.dirname(targetPath);
 
             // Ensure target folder exists
@@ -52,15 +49,17 @@ async function convertToWebp() {
             }
 
             if (needsConversion) {
-                // Main Image: Resize to max 1280x1280, Quality 70
-                await sharp(file)
-                    .resize({ width: 1280, height: 1280, fit: 'inside', withoutEnlargement: true })
-                    .webp({ quality: 70, effort: 6 })
+                const sharpInstance = sharp(file);
+                // Main Image (Unified): Resize to max 1920x1920, Quality 75
+                await sharpInstance.clone()
+                    .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
+                    .webp({ quality: 75, effort: 6 })
                     .toFile(targetPath);
 
-                // Thumbnail: Resize to width 48, Quality 50
-                await sharp(file)
-                    .resize({ width: 48 })
+                // Small Image (LQIP): Resize to width 200, Quality 50
+                // Increased to 200px for better preview quality
+                await sharpInstance.clone()
+                    .resize({ width: 200 })
                     .webp({ quality: 50, effort: 4 })
                     .toFile(targetSmallPath);
 
@@ -72,8 +71,6 @@ async function convertToWebp() {
             if (fs.existsSync(distPngPath)) {
                 fs.unlinkSync(distPngPath);
             }
-
-            // process.stdout.write('.'); // Moved to logic blocks
         }
 
         console.log('\n🧹 Starting cleanup...');
@@ -94,8 +91,22 @@ async function convertToWebp() {
             // 2. Sync Deletion: If WebP exists in dist but PNG missing in public
             if (distFile.endsWith('.webp')) {
                 const relativePath = path.relative(outputDir, distFile);
-                // Assuming 1:1 mapping from png to webp as per previous logic
-                const sourcePng = path.join(inputDir, relativePath).replace(/\.webp$/i, '.png');
+                let sourcePng = '';
+
+                // Clean up deprecated variants
+                if (distFile.endsWith('-tiny.webp') || distFile.endsWith('-mobile.webp')) {
+                    fs.unlinkSync(distFile);
+                    console.log(`🗑️  Deleted deprecated file: ${distFile}`);
+                    removedCount++;
+                    continue;
+                }
+
+                // Handle standard variants
+                if (distFile.endsWith('-small.webp')) {
+                    sourcePng = path.join(inputDir, relativePath).replace(/-small\.webp$/, '.png');
+                } else {
+                    sourcePng = path.join(inputDir, relativePath).replace(/\.webp$/, '.png');
+                }
 
                 if (!fs.existsSync(sourcePng)) {
                     fs.unlinkSync(distFile);

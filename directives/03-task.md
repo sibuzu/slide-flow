@@ -42,3 +42,11 @@
     - [x] `optimize-images.mjs`: Resize 1280, Quality 70, Generate Thumbnails <!-- id: 39 -->
     - [x] `utils/image.js`: Return `{ src, placeholder }` <!-- id: 40 -->
     - [x] `SwiperComponent.vue`: Implement Blur-up Loading <!-- id: 41 -->
+- [x] **Phase 11: 進階顯示與手機支援** <!-- id: 42 -->
+    - [x] `optimize-images.mjs`: Quality 75, Resize 1920, Multi-res (Mobile/Tiny) <!-- id: 43 -->
+    - [x] `utils/image.js`: Return `srcset` support <!-- id: 44 -->
+    - [x] `SwiperComponent.vue`: Implement `srcset`, IntersectionObserver, Mobile Rotation <!-- id: 45 -->
+- [x] **Phase 12: 影像策略精煉** <!-- id: 46 -->
+    - [x] `optimize-images.mjs`: Simplify to Main (1920) + Small (200), remove Mobile/Tiny <!-- id: 47 -->
+    - [x] `utils/image.js`: Remove `srcset` <!-- id: 48 -->
+    - [x] `SwiperComponent.vue`: Remove `srcset` <!-- id: 49 -->
