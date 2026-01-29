@@ -54,19 +54,24 @@
         - 若 `dist` 中的 WebP 對應的原始圖片 (PNG/JPG) 在 `public` 已不存在，則刪除該 WebP。
         - 若 `dist` 中存在 `Zone.Identifier` 檔案，一律刪除。
 
+### 9. 效能優化 (Performance Optimization) [NEW]
+- **scripts/optimize-images.mjs**:
+    - **Resize & Quality**: 調整設定為 `resize: 1280x1280` (`fit: inside`)，`quality: 70`，以縮減檔案大小。
+    - **LQIP Generation**: 為每張投影片生成縮圖 (e.g. `filename-small.webp`, width: 48px)，作為載入時的佔位符。
+- **Frontend Logic**:
+    - **utils/image.js**: 修改 `getImagePath` 回傳 `{ src, placeholder }` 物件結構。
+        - Prod: `src` = `.webp`, `placeholder` = `-small.webp`。
+        - Dev: `src` = `.png`, `placeholder` = null (或原圖)。
+- **SwiperComponent.vue**:
+    - 實作 **Blur-up Loading**: 優先顯示模糊的 Placeholder，圖片載入完成後淡入主圖。
+
 ## 驗證計畫 (Verification Plan)
 1. **Dev**: `npm run dev`
     - 檢查 URL 是否隨投影片切換變更。
-    - 重新整理頁面，檢查是否停留在同一張投影片。
-    - 在最後一頁按右鍵/下鍵，檢查是否跳出提示。
-    - 點擊「Next Chapter」檢查是否正確跳轉。
-    - 訪問 `/viewer/AlwaysRobusInfo` -> 應跳轉至 `/chapters/AlwaysRobusInfo`。
-    - 訪問 `/viewer/AlwaysRobusInfo/202601` -> 應變成 `.../202601?slide=1`。
     - 檢查投影片是否填滿可用空間。
-    - 檢查 Prompt 出現時，按 Enter 是否觸發 Next Chapter。
-    - 檢查 `202601` -> `party` 是否正常跳轉。
+    - 檢查載入時是否有模糊過渡效果 (Dev 模式下可能不明顯，僅驗證不報錯)。
 2. **Build Sync**:
-    - 建立 `public/sliders/test_del.png`，執行 `npm run build`。
-    - 確認 `dist/sliders/test_del.webp` 存在。
-    - 刪除 `public/sliders/test_del.png`，再次執行 `npm run build`。
-    - 確認 `dist/sliders/test_del.webp` 已被刪除。
+    - `npm run build`。
+    - 檢查 `dist/sliders` 下是否生成主圖與 `-small.webp` 縮圖。
+    - 檢查主圖大小是否顯著縮小 (Resize 1280 Q70)。
+    - `npm run preview` 驗證載入速度與過渡效果。

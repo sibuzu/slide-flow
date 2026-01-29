@@ -43,12 +43,12 @@ const goHome = () => router.push('/')
                 <!-- Thumbnails Preview (Cover or First 3 slides) -->
                 <div class="aspect-video bg-slate-50 relative overflow-hidden border-b border-slate-100 group-hover:opacity-90 transition-opacity">
                      <template v-if="chap.cover">
-                        <img :src="getImagePath(chap.cover)" class="w-full h-full object-cover">
+                        <img :src="getImagePath(chap.cover).src" class="w-full h-full object-cover">
                      </template>
                      <div v-else class="w-full h-full p-2 grid grid-cols-3 gap-1">
                         <div v-for="(slide, idx) in chap.slides.slice(0, 3)" :key="idx" 
                              class="relative w-full h-full rounded overflow-hidden shadow-sm">
-                            <img :src="getImagePath(slide)" class="w-full h-full object-cover opacity-80">
+                            <img :src="getImagePath(slide).src" class="w-full h-full object-cover opacity-80">
                         </div>
                      </div>
                 </div>

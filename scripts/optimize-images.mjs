@@ -29,6 +29,7 @@ async function convertToWebp() {
             const relativePath = path.relative(inputDir, file);
             // Construct target path in dist with .webp extension
             const targetPath = path.join(outputDir, relativePath).replace(/\.png$/i, '.webp');
+            const targetSmallPath = targetPath.replace(/\.webp$/, '-small.webp');
             const targetFolder = path.dirname(targetPath);
 
             // Ensure target folder exists
@@ -38,22 +39,31 @@ async function convertToWebp() {
 
             // Check if conversion is needed
             let needsConversion = true;
-            if (fs.existsSync(targetPath)) {
+            if (fs.existsSync(targetPath) && fs.existsSync(targetSmallPath)) {
                 const sourceStats = fs.statSync(file);
                 const targetStats = fs.statSync(targetPath);
+                const targetSmallStats = fs.statSync(targetSmallPath);
 
-                // If target is newer than source, skip
-                if (targetStats.mtime > sourceStats.mtime) {
+                // If targets are newer than source, skip
+                if (targetStats.mtime > sourceStats.mtime && targetSmallStats.mtime > sourceStats.mtime) {
                     needsConversion = false;
                     process.stdout.write('s'); // s = skipped
                 }
             }
 
             if (needsConversion) {
-                // Convert
+                // Main Image: Resize to max 1280x1280, Quality 70
                 await sharp(file)
-                    .webp({ quality: 80, effort: 6 })
+                    .resize({ width: 1280, height: 1280, fit: 'inside', withoutEnlargement: true })
+                    .webp({ quality: 70, effort: 6 })
                     .toFile(targetPath);
+
+                // Thumbnail: Resize to width 48, Quality 50
+                await sharp(file)
+                    .resize({ width: 48 })
+                    .webp({ quality: 50, effort: 4 })
+                    .toFile(targetSmallPath);
+
                 process.stdout.write('.'); // . = converted
             }
 

@@ -38,3 +38,7 @@
 - [x] **Phase 9: 建置同步與清理** <!-- id: 35 -->
     - [x] `scripts/optimize-images.mjs` 刪除 dist 中多餘的 WebP <!-- id: 36 -->
     - [x] `scripts/optimize-images.mjs` 處理 Zone.Identifier 檔案 <!-- id: 37 -->
+- [x] **Phase 10: 效能優化 (Resize & LQIP)** <!-- id: 38 -->
+    - [x] `optimize-images.mjs`: Resize 1280, Quality 70, Generate Thumbnails <!-- id: 39 -->
+    - [x] `utils/image.js`: Return `{ src, placeholder }` <!-- id: 40 -->
+    - [x] `SwiperComponent.vue`: Implement Blur-up Loading <!-- id: 41 -->

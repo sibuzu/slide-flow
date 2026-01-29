@@ -28,7 +28,7 @@ onMounted(() => {
         
         <!-- Image Wrapper -->
         <div class="aspect-video relative border-b border-slate-100 bg-slate-50 overflow-hidden">
-          <img v-if="item.cover" :src="getImagePath(item.cover)" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+          <img v-if="item.cover" :src="getImagePath(item.cover).src" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
           <div v-else class="w-full h-full flex items-center justify-center text-slate-400">
             No Cover
           </div>
