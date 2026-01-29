@@ -1,5 +1,4 @@
 {
-    "title": "Walking Map",
-    "orient": "landscape",
-    "subgroup": false
+    "title": "手繪地圖",
+    "orient": "landscape"
 }

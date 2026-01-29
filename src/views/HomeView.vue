@@ -1,9 +1,14 @@
 <script setup>
 import { useSlideStore } from '../stores/slide'
-import { storeToRefs } from 'pinia'
+import { onMounted, computed } from 'vue'
+import { getImagePath } from '../utils/image'
 
 const store = useSlideStore()
-const { manifest } = storeToRefs(store)
+const manifest = computed(() => store.manifest)
+
+onMounted(() => {
+    store.fetchManifest()
+})
 </script>
 
 <template>
@@ -23,7 +28,7 @@ const { manifest } = storeToRefs(store)
         
         <!-- Image Wrapper -->
         <div class="aspect-video relative border-b border-slate-100 bg-slate-50 overflow-hidden">
-          <img v-if="item.cover" :src="item.cover" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
+          <img v-if="item.cover" :src="getImagePath(item.cover)" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
           <div v-else class="w-full h-full flex items-center justify-center text-slate-400">
             No Cover
           </div>
@@ -32,11 +37,6 @@ const { manifest } = storeToRefs(store)
         <!-- Content -->
         <div class="p-6 flex flex-col flex-1">
           <h2 class="text-xl font-bold text-slate-800 mb-2 truncate">{{ item.title }}</h2>
-          <p class="text-sm text-slate-500 mb-6 flex-grow line-clamp-2">
-            Professional slide deck. 
-            {{ item.subgroup ? 'Contains multiple chapters.' : 'Single presentation flow.' }}
-          </p>
-          
           <!-- Action Footer -->
           <div class="flex items-center text-blue-500 font-semibold text-sm mt-auto">
              <span>{{ item.subgroup ? 'Browse Chapters' : 'View Slides' }}</span>

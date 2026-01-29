@@ -1,4 +1,4 @@
-# 任務清單 (Navigation Refactor)
+# 任務清單 (Navigation Refactor & Optimization)
 
 - [x] **Phase 1: 路由與組件重構** <!-- id: 0 -->
     - [x] 建立 `src/views/ChapterView.vue` <!-- id: 1 -->
@@ -13,3 +13,13 @@
     - [x] 更新全域樣式 (App.vue/style.css) 為淺色系 <!-- id: 10 -->
     - [x] 更新 HomeView 卡片樣式 (Sibuzu 風格) <!-- id: 11 -->
     - [x] 更新 ChapterView 卡片樣式 (Sibuzu 風格) <!-- id: 12 -->
+- [x] **Phase 4: 圖片優化 (WebP)** <!-- id: 13 -->
+    - [x] 安裝 `sharp`, `glob` <!-- id: 14 -->
+    - [x] 建立 `scripts/optimize-images.mjs` <!-- id: 15 -->
+    - [x] 更新 `package.json` build scripts <!-- id: 16 -->
+    - [x] 建立圖片路徑 Helper 並更新 Vue 組件 <!-- id: 17 -->
+- [x] **Phase 5: 動態發現 (Vite Plugin)** <!-- id: 18 -->
+    - [x] 建立 `plugins/vite-plugin-slides.js` <!-- id: 19 -->
+    - [x] 更新 `vite.config.js` 註冊 Plugin <!-- id: 20 -->
+    - [x] 更新 `src/stores/slide.js` 使用 `virtual:slides` <!-- id: 21 -->
+    - [x] 移除 `gen_manifest.py` <!-- id: 22 -->

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSlideStore } from '../stores/slide'
+import { getImagePath } from '../utils/image'
 
 const route = useRoute()
 const router = useRouter()
@@ -43,7 +44,7 @@ const goHome = () => router.push('/')
                 <div class="aspect-video bg-slate-50 relative p-2 grid grid-cols-3 gap-1 overflow-hidden border-b border-slate-100">
                     <div v-for="(slide, idx) in chap.slides.slice(0, 3)" :key="idx" 
                          class="relative w-full h-full rounded overflow-hidden shadow-sm">
-                        <img :src="slide" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
+                        <img :src="getImagePath(slide)" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
                     </div>
                 </div>
 

@@ -1,18 +1,15 @@
 import { defineStore } from 'pinia'
+import slidesData from 'virtual:slides'
 
 export const useSlideStore = defineStore('slide', {
     state: () => ({
-        manifest: [],
+        manifest: slidesData,
         currentSlide: null
     }),
     actions: {
-        async fetchManifest() {
-            try {
-                const response = await fetch('/sliders/manifest.json')
-                this.manifest = await response.json()
-            } catch (error) {
-                console.error('Failed to fetch manifest:', error)
-            }
+        fetchManifest() {
+            // No-op for compatibility, data is already loaded via import
+            this.manifest = slidesData
         }
     }
 })

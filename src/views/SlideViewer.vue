@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useSlideStore } from '../stores/slide'
 import SwiperComponent from '../components/SwiperComponent.vue'
 import NavigationOverlay from '../components/NavigationOverlay.vue'
+import { getImagePath } from '../utils/image'
 
 const route = useRoute()
 const router = useRouter()
@@ -30,12 +31,15 @@ const nextChapterId = computed(() => {
 const slides = computed(() => {
     if (!presentation.value) return []
     
+    let rawSlides = []
     if (presentation.value.subgroup && chapterId) {
         const chapter = presentation.value.chapters.find(c => c.id === chapterId)
-        return chapter ? chapter.slides : []
+        rawSlides = chapter ? chapter.slides : []
+    } else {
+        rawSlides = presentation.value.slides || []
     }
-    
-    return presentation.value.slides || []
+
+    return rawSlides.map(getImagePath)
 })
 
 const currentSlideIndex = ref(0)
