@@ -28,7 +28,34 @@
 - 改為直接導入: `import slidesData from 'virtual:slides'`.
 - Store 初始化時直接使用 `slidesData`。
 
+### 5. 導航與網址同步 (Navigation & URL Sync) [NEW]
+- **SlideViewer.vue**:
+    - 監聽 `currentSlideIndex` 變更，同步更新 URL Query (例如 `?slide=3`)。
+    - 初始化時讀取 URL Query 跳轉至指定頁面。
+    - 修正最後一頁導航行為：監聽來自 Swiper 的 `reachEnd` 事件，觸發「下一章」提示。
+- **SwiperComponent.vue**:
+    - 增強鍵盤監聽：當嘗試在最後一頁繼續往後時，發送 `attemptNext` 事件。
+
+### 6. 版面與路由優化 (Layout & Routing Optimization) [NEW]
+- **SwiperComponent.vue**:
+    - 調整容器 CSS，移除固定比例 (`aspect-*`)，改為 `w-full h-full` 以充分利用螢幕空間，讓投影片在 `object-contain` 模式下達到最大可視面積。
+- **SlideViewer.vue**:
+    - **Root Redirect**: 若進入 Subgroup Root (如 `AlwaysRobusInfo`) 且無 Chapter ID，自動重導向至章節列表 (`/chapters/:id`)。
+    - **Default Query**: 若進入 Viewer 但無 `?slide=N` 參數，自動補上 `?slide=1`。
+
+### 7. 焦點與邏輯修復 (Focus & Logic Fixes) [NEW]
+- **SlideViewer.vue**:
+    - **Auto Focus**: 當顯示 "Next Chapter" Prompt 時，自動將焦點移至 Next Chapter 按鈕，支援 Enter 操作。
+    - **Chapter Logic**: 修正 `nextChapterId` 計算與路由響應邏輯，確保能正確跳轉至 `party` 章節 (debug 排序或 reactivity 問題)。
+
 ## 驗證計畫 (Verification Plan)
-1. **Dev**: `npm run dev` -> 確認首頁能顯示 AlwaysRobusInfo 與 WalkingMap (資料來自 Plugin)。
-2. **Build**: `npm run build` -> 確認構建過程 Plugin 能正確生成資料。
-3. **Preview**: `npm run preview` -> 確認 WebP 優化與動態資料整合正常。
+1. **Dev**: `npm run dev`
+    - 檢查 URL 是否隨投影片切換變更。
+    - 重新整理頁面，檢查是否停留在同一張投影片。
+    - 在最後一頁按右鍵/下鍵，檢查是否跳出提示。
+    - 點擊「Next Chapter」檢查是否正確跳轉。
+    - 訪問 `/viewer/AlwaysRobusInfo` -> 應跳轉至 `/chapters/AlwaysRobusInfo`。
+    - 訪問 `/viewer/AlwaysRobusInfo/202601` -> 應變成 `.../202601?slide=1`。
+    - 檢查投影片是否填滿可用空間。
+    - 檢查 Prompt 出現時，按 Enter 是否觸發 Next Chapter。
+    - 檢查 `202601` -> `party` 是否正常跳轉。

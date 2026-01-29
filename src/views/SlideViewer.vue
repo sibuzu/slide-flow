@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSlideStore } from '../stores/slide'
 import SwiperComponent from '../components/SwiperComponent.vue'
@@ -17,7 +17,8 @@ const presentation = computed(() => store.manifest.find(p => p.id === id))
 
 const currentChapterIndex = computed(() => {
     if (!presentation.value?.chapters) return -1
-    return presentation.value.chapters.findIndex(c => c.id === chapterId)
+    const cId = route.params.chapterId
+    return presentation.value.chapters.findIndex(c => c.id === cId)
 })
 
 const nextChapterId = computed(() => {
@@ -30,10 +31,11 @@ const nextChapterId = computed(() => {
 
 const slides = computed(() => {
     if (!presentation.value) return []
+    const cId = route.params.chapterId // Access reactive route params directly
     
     let rawSlides = []
-    if (presentation.value.subgroup && chapterId) {
-        const chapter = presentation.value.chapters.find(c => c.id === chapterId)
+    if (presentation.value.subgroup && cId) {
+        const chapter = presentation.value.chapters.find(c => c.id === cId)
         rawSlides = chapter ? chapter.slides : []
     } else {
         rawSlides = presentation.value.slides || []
@@ -50,13 +52,53 @@ const isEnd = computed(() => {
     return currentSlideIndex.value >= slides.value.length - 1
 })
 
+// Sync URL Query
+const updateUrl = (idx) => {
+    router.replace({
+        query: { ...route.query, slide: idx + 1 },
+        replace: true
+    })
+}
+
+// Watch slide change -> update URL
+watch(currentSlideIndex, (newVal) => {
+    // Only update if different from query to avoid loop
+    const querySlide = parseInt(route.query.slide)
+    if (querySlide !== newVal + 1) {
+        updateUrl(newVal)
+    }
+})
+
+// Check Query on Mount/Change
+watch(() => route.query.slide, (newVal) => {
+    if (newVal && !isNaN(newVal)) {
+        const idx = parseInt(newVal) - 1
+        if (idx >= 0 && idx < slides.value.length && idx !== currentSlideIndex.value) {
+            currentSlideIndex.value = idx
+            if (swiperInstance.value) {
+                swiperInstance.value.slideTo(idx, 0)
+            }
+        }
+    }
+}, { immediate: true })
+
+const nextBtnRef = ref(null)
+
+const onAttemptNext = () => {
+    if (nextChapterId.value) {
+        showPrompt.value = true
+        // Focus next tick
+        setTimeout(() => {
+            nextBtnRef.value?.focus()
+        }, 50)
+    }
+}
+
 const nextSlide = () => {
     if (!swiperInstance.value) return
     
     if (isEnd.value) {
-        if (nextChapterId.value) {
-            showPrompt.value = true
-        }
+        onAttemptNext()
     } else {
         swiperInstance.value.slideNext()
     }
@@ -79,6 +121,7 @@ const goBack = () => {
 const onNextChapter = () => {
     if (nextChapterId.value) {
         showPrompt.value = false
+        // Push new route, router watcher should handle the rest
         router.push(`/viewer/${id}/${nextChapterId.value}`)
     }
 }
@@ -99,8 +142,34 @@ const onFsChange = () => {
     isFullscreen.value = !!document.fullscreenElement
 }
 
+// Route Check & Initialization
+const checkRoute = () => {
+    // Check Subgroup Root Redirect
+    if (presentation.value?.subgroup && !route.params.chapterId) {
+        router.replace(`/chapters/${id}`)
+        return
+    }
+
+    // Default Query Param ?slide=1
+    if (!route.query.slide) {
+        router.replace({ ...route, query: { ...route.query, slide: 1 } })
+    }
+}
+
+// Watch params to handle chapter changes or re-renders
+watch(() => route.params, () => {
+    // Reset if chapter changed
+    if (swiperInstance.value) {
+        // If swiper exists, the slide watcher below will handle index update via query
+        // But we need to ensure query is set
+        checkRoute()
+    }
+}, { deep: true })
+
 onMounted(() => {
     document.addEventListener('fullscreenchange', onFsChange)
+    checkRoute()
+    // Query check is handled by immediate watch on route.query.slide
 })
 
 onUnmounted(() => {
@@ -122,6 +191,7 @@ onUnmounted(() => {
             :orient="presentation.orient"
             @swiper="(s) => swiperInstance = s"
             @slideChange="(idx) => currentSlideIndex = idx"
+            @attemptNext="onAttemptNext"
         />
         
         <!-- Custom Navigation Buttons -->
@@ -166,7 +236,7 @@ onUnmounted(() => {
 
         <!-- Next Chapter Prompt (Lightweight) -->
         <div v-if="showPrompt" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex gap-4">
-             <button @click="onNextChapter" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg font-bold flex items-center gap-2 transform hover:scale-105 transition-all">
+             <button ref="nextBtnRef" @click="onNextChapter" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg font-bold flex items-center gap-2 transform hover:scale-105 transition-all focus:outline-none focus:ring-4 focus:ring-blue-400">
                 Next Chapter
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />

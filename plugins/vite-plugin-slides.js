@@ -11,7 +11,7 @@ export default function SlideLoaderPlugin() {
         if (!fs.existsSync(dir)) return [];
         return fs.readdirSync(dir)
             .filter(file => /\.(png|jpg|jpeg|webp)$/i.test(file))
-            .filter(file => !file.toLowerCase().includes('cover'))
+            .filter(file => !/^cover\./i.test(file))
             .sort() // Ensure consistent order
             .map(file => path.basename(file));
     };
@@ -68,11 +68,13 @@ export default function SlideLoaderPlugin() {
                 entry.chapters = chapters.map(chapName => {
                     const chapPath = path.join(itemPath, chapName);
                     const chapConfig = loadConfig(chapPath);
+                    const cover = getCover(chapPath);
                     const images = getImages(chapPath);
 
                     return {
                         id: chapName,
                         title: chapConfig.title || chapName,
+                        cover: cover ? `/sliders/${itemName}/${chapName}/${cover}` : null,
                         slides: images.map(img => `/sliders/${itemName}/${chapName}/${img}`)
                     };
                 });

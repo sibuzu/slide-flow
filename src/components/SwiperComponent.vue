@@ -20,22 +20,55 @@ const props = defineProps({
 
 const modules = [Navigation, Pagination, Keyboard, EffectFade];
 
-const containerClass = computed(() => {
-  return props.orient === 'portrait' ? 'aspect-[9/16] h-[80vh]' : 'aspect-video w-full'
+
+const emit = defineEmits(['swiper', 'slideChange', 'attemptNext'])
+let swiperInstance = null
+
+const onSwiperRef = (s) => {
+    swiperInstance = s
+    emit('swiper', s)
+}
+
+// Custom keyboard handling to support Up/Down for Prev/Next
+const handleKeydown = (e) => {
+    if (!swiperInstance) return
+    
+    // Left (37) or Up (38) -> Prev
+    if (e.keyCode === 37 || e.keyCode === 38) {
+        swiperInstance.slidePrev()
+    }
+    // Right (39) or Down (40) -> Next
+    if (e.keyCode === 39 || e.keyCode === 40) {
+        if (swiperInstance.isEnd) {
+            emit('attemptNext')
+        } else {
+            swiperInstance.slideNext()
+        }
+    }
+}
+
+import { onMounted, onUnmounted } from 'vue'
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
 <template>
   <div class="flex items-center justify-center w-full h-full bg-black">
-    <div :class="[containerClass, 'relative max-h-screen']">
+    <div class="w-full h-full relative">
         <swiper 
             :slides-per-view="1" 
             :space-between="0" 
             effect="fade"
             :pagination="{ clickable: true }"
-            :keyboard="{ enabled: true }"
+            :keyboard="{ enabled: true, onlyInViewport: false, pageUpDown: true }"
             class="w-full h-full"
-            @swiper="(s) => $emit('swiper', s)"
+            @swiper="onSwiperRef"
             @slideChange="(s) => $emit('slideChange', s.activeIndex)"
         >
         <swiper-slide v-for="(slide, index) in slides" :key="index" class="bg-black flex items-center justify-center">

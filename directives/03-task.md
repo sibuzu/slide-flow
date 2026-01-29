@@ -23,3 +23,15 @@
     - [x] 更新 `vite.config.js` 註冊 Plugin <!-- id: 20 -->
     - [x] 更新 `src/stores/slide.js` 使用 `virtual:slides` <!-- id: 21 -->
     - [x] 移除 `gen_manifest.py` <!-- id: 22 -->
+- [x] **Phase 6: 導航增強與網址同步** <!-- id: 23 -->
+    - [x] 更新 `SwiperComponent.vue` 發送 `attemptNext` 事件 <!-- id: 24 -->
+    - [x] 更新 `SlideViewer.vue` 實作 URL Hash Sync <!-- id: 25 -->
+    - [x] 更新 `SlideViewer.vue` 處理最後一頁導航行為 <!-- id: 26 -->
+    - [x] 修復 "Next Chapter" 按鈕功能 <!-- id: 27 -->
+- [x] **Phase 7: 版面與路由優化** <!-- id: 28 -->
+    - [x] 修改 `SwiperComponent.vue` 優化 CSS (w-full h-full) <!-- id: 29 -->
+    - [x] 更新 `SlideViewer.vue` 支援 Root Redirect (Subgroup -> Chapter List) <!-- id: 30 -->
+    - [x] 更新 `SlideViewer.vue` 支援 Default Query (`?slide=1`) <!-- id: 31 -->
+- [x] **Phase 8: 焦點與邏輯修復** <!-- id: 32 -->
+    - [x] `SlideViewer.vue` 實作 autofocus on Prompt <!-- id: 33 -->
+    - [x] 修正 `currentChapterIndex` 與 `nextChapterId` 邏輯 <!-- id: 34 -->
