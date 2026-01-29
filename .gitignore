@@ -32,3 +32,7 @@ venv/
 *.egg-info/
 .coverage
 htmlcov/
+
+# WSL / Windows Metadata
+*:Zone.Identifier
+

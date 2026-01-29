@@ -1,0 +1,22 @@
+{
+    "title": "Always Robus Info",
+    "orient": "landscape",
+    "subgroup": true,
+    "chapters": [
+        {
+            "id": "202512",
+            "title": "Dec 2025",
+            "path": "202512"
+        },
+        {
+            "id": "202601",
+            "title": "Jan 2026",
+            "path": "202601"
+        },
+        {
+            "id": "party",
+            "title": "Party",
+            "path": "party"
+        }
+    ]
+}

@@ -108,6 +108,7 @@ def convert_pdf_to_slides(pdf_path, output_folder, dpi=200):
 - **深色模式**: 預設採用深色背景（黑/深灰），讓投影片內容更突出。但用戶可以選擇 深色模式 或 淺色模式。
 - **載入狀態**: 圖片採用 `lazy loading`，並在載入時顯示微光抽屜 (Skeleton) 效果。
 - **全螢幕按鈕**: 提供 Web API Fullscreen 支援，點擊可進入全螢幕沉浸模式。
+- 首頁應該是以 CARD + 縮圖 形式，顯有 好友遠快報(AlwaysRobusInfo) 跟 手繪地圖(WalkingMap), 若是點入 手繪地圖，進入 SLIDE 模式，一次一張，若是點入  好友遠快報 則再有二個 CARD 202512, party, 再點入就入投影片模式。
 
 ------
 
@@ -203,5 +204,4 @@ swiper.on('sliderMove', (s, event) => {
 
 4. 將專案 build, deploy 等步驟，寫到 README.md 中。
 
-
-   
+5. 執行任何會對專案進行修改的 shell 指令，請先告知，並取得我的同意。

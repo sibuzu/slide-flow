@@ -15,7 +15,7 @@ const { manifest } = storeToRefs(store)
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div v-for="item in manifest" :key="item.id" 
            class="bg-neutral-800 rounded-lg overflow-hidden hover:scale-105 transition-transform cursor-pointer shadow-lg"
-           @click="$router.push({ name: 'viewer', params: { id: item.id } })">
+           @click="item.subgroup ? $router.push({ name: 'chapters', params: { id: item.id } }) : $router.push({ name: 'viewer', params: { id: item.id } })">
         <div class="aspect-video bg-neutral-700 relative">
           <img v-if="item.cover" :src="item.cover" class="w-full h-full object-cover">
           <div v-else class="w-full h-full flex items-center justify-center text-neutral-500">
