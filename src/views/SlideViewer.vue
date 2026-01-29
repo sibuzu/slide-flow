@@ -128,6 +128,7 @@ const onNextChapter = () => {
 
 // Fullscreen
 const isFullscreen = ref(false)
+const isRotated = ref(false)
 const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen()
@@ -192,12 +193,14 @@ onUnmounted(() => {
             @swiper="(s) => swiperInstance = s"
             @slideChange="(idx) => currentSlideIndex = idx"
             @attemptNext="onAttemptNext"
+            @rotationChanged="(v) => isRotated = v"
         />
         
         <!-- Custom Navigation Buttons -->
         <!-- Prev Button -->
         <button v-show="currentSlideIndex > 0" @click="prevSlide" 
-                class="absolute top-1/2 left-4 z-20 -translate-y-1/2 p-3 bg-black/50 rounded-full text-white hover:bg-black/80 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                class="absolute z-20 p-3 bg-black/50 rounded-full text-white hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                :class="isRotated ? 'top-24 left-1/2 -translate-x-1/2 rotate-90' : 'top-1/2 left-4 -translate-y-1/2'">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
@@ -205,7 +208,8 @@ onUnmounted(() => {
 
         <!-- Next Button -->
         <button v-show="!isEnd || nextChapterId" @click="nextSlide" 
-                class="absolute top-1/2 right-4 z-20 -translate-y-1/2 p-3 bg-black/50 rounded-full text-white hover:bg-black/80 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                class="absolute z-20 p-3 bg-black/50 rounded-full text-white hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                :class="isRotated ? 'bottom-16 left-1/2 -translate-x-1/2 rotate-90' : 'top-1/2 right-4 -translate-y-1/2'">
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>

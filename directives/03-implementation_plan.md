@@ -94,9 +94,23 @@
     - Remove `srcset` binding.
     - Continue utilizing Lazy Loading & Mobile Rotation.
 
+### 12. 手機旋轉 CSS 精煉 (Mobile Rotation CSS Refinement) [NEW]
+- **SwiperComponent.vue**:
+    - Implement robust "Pseudo-rotation" CSS logic.
+    - Use `fixed`, `top: 50%`, `left: 50%`, `translate: -50% -50%` and `rotate(90deg)` to force landscape display on portrait mobile screens in fullscreen.
+    - Ensure robust centering and z-index handling.
+
+### 13. 按鈕旋轉支援 (Button Rotation Support) [NEW]
+- **SwiperComponent.vue**:
+    - Determine if current slide is rotated.
+    - Emit `rotationChanged(isRotated)` event on slide change or resize.
+- **SlideViewer.vue**:
+    - Listen for `rotationChanged` event.
+    - Dynamically apply CSS classes to Previous/Next buttons.
+    - If rotated:
+        - Prev: `top-8 left-1/2 -translate-x-1/2 rotate-90`.
+        - Next: `bottom-8 left-1/2 -translate-x-1/2 rotate-90`.
+
 ## 驗證計畫 (Verification Plan)
-1. **Build**: `npm run build`
-    - Check output: `dist/sliders` should contain `*.webp` (1920) and `*-small.webp` (200).
-    - Check absence of `*-mobile.webp` and `*-tiny.webp`.
-2. **Review**: `npm run preview`
-    - Verify image quality and loading behavior.
+1. **Dev**: Mobile Fullscreen Test.
+2. **Review**: Ensure buttons move to logical "Left/Right" (Visually Up/Down) when rotated.

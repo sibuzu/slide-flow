@@ -50,3 +50,8 @@
     - [x] `optimize-images.mjs`: Simplify to Main (1920) + Small (200), remove Mobile/Tiny <!-- id: 47 -->
     - [x] `utils/image.js`: Remove `srcset` <!-- id: 48 -->
     - [x] `SwiperComponent.vue`: Remove `srcset` <!-- id: 49 -->
+- [x] **Phase 13: 手機旋轉 CSS 精煉** <!-- id: 50 -->
+    - [x] `SwiperComponent.vue`: Implement `fixed` + `translate` centering for pseudo-rotation <!-- id: 51 -->
+- [x] **Phase 14: 按鈕旋轉支援** <!-- id: 52 -->
+    - [x] `SwiperComponent.vue`: Emit `rotationChanged` event <!-- id: 53 -->
+    - [x] `SlideViewer.vue`: Apply rotation styles to Prev/Next buttons <!-- id: 54 -->

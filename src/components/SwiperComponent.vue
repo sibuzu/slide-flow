@@ -19,13 +19,14 @@ const props = defineProps({
 })
 
 const modules = [Navigation, Pagination, Keyboard, EffectFade];
-const emit = defineEmits(['swiper', 'slideChange', 'attemptNext'])
+const emit = defineEmits(['swiper', 'slideChange', 'attemptNext', 'rotationChanged'])
 
 // State
 const loaded = ref({})
 const isVisible = ref({})
 const rotationStyles = ref({})
 const slideRefs = ref([])
+const activeIndex = ref(0)
 let swiperInstance = null
 let observer = null
 
@@ -33,12 +34,19 @@ let observer = null
 const isMobile = ref(false)
 const isFullscreen = ref(false)
 
+const emitRotationStatus = () => {
+    const style = rotationStyles.value[activeIndex.value]
+    const isRotated = style && style.transform && style.transform.includes('rotate')
+    emit('rotationChanged', !!isRotated)
+}
+
 // Logic
 const updateDeviceState = () => {
     isMobile.value = window.matchMedia('(max-width: 768px)').matches
     isFullscreen.value = !!document.fullscreenElement
     // Re-check rotations
     Object.keys(loaded.value).forEach(idx => checkRotation(idx))
+    emitRotationStatus()
 }
 
 const checkRotation = (index) => {
@@ -67,12 +75,16 @@ const checkRotation = (index) => {
             width: '100vh',
             height: '100vw',
             transform: 'rotate(90deg)',
+            transformOrigin: 'center center',
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            translate: '-50% -50%',
             maxWidth: 'none',
             maxHeight: 'none',
-            position: 'absolute',
-            // transform-origin: 'center center' is default
-            // Centering logic: The parent is flex center.
-            // If we rotate 90. 
+            zIndex: '9999',
+            objectFit: 'contain',
+            backgroundColor: '#000'
         }
     }
 }
@@ -132,6 +144,9 @@ watch(() => props.slides, () => {
     })
 })
 
+watch(() => rotationStyles.value[activeIndex.value], emitRotationStatus, { deep: true })
+watch(activeIndex, emitRotationStatus)
+
 onMounted(() => {
     window.addEventListener('keydown', handleKeydown)
     window.addEventListener('resize', updateDeviceState)
@@ -154,6 +169,7 @@ onUnmounted(() => {
   <div class="flex items-center justify-center w-full h-full bg-black">
     <div class="w-full h-full relative">
         <swiper 
+            :modules="modules"
             :slides-per-view="1" 
             :space-between="0" 
             effect="fade"
@@ -161,7 +177,7 @@ onUnmounted(() => {
             :keyboard="{ enabled: true, onlyInViewport: false, pageUpDown: true }"
             class="w-full h-full"
             @swiper="onSwiperRef"
-            @slideChange="(s) => $emit('slideChange', s.activeIndex)"
+            @slideChange="(s) => { activeIndex = s.activeIndex; $emit('slideChange', s.activeIndex) }"
         >
         <swiper-slide 
             v-for="(slide, index) in slides" 

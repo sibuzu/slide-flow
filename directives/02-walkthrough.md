@@ -1,15 +1,32 @@
 # SlideFlow 開發與重構紀錄 (Walkthrough)
 
-## 最新更新：Refactor - 影像策略精煉 (Phase 12)
+## 最新更新：Refactor - 按鈕旋轉支援 (Phase 14)
+
+**目標**: 當手機進入「偽旋轉 (Pseudo-rotation)」模式時，導航按鈕位置與方向應同步調整，以符合視覺上的「橫向」操作體驗。
+
+**實作**:
+- **Event Sync**: `SwiperComponent` 偵測當前投影片是否處於旋轉狀態，並發送 `rotationChanged` 事件。
+- **Dynamic Positioning**: `SlideViewer` 根據旋轉狀態動態切換按鈕 CSS Class：
+    -   **Normal**: 左右置中 (`top-1/2 left/right-4`).
+    -   **Rotated**: 上下置中 (`top-24/bottom-16 left-1/2`) 並旋轉 90 度 (`rotate-90`).
+
+---
+
+## 歷史更新：Refactor - 手機旋轉 CSS 精煉 (Phase 13)
+
+**目標**: 解決手機瀏覽器「螢幕旋轉鎖定」導致無法橫向全螢幕觀看投影片的問題。
+
+**實作**:
+- **CSS Pseudo-rotation**: Mobile + Fullscreen + Portrait Screen + Landscape Image -> 強制旋轉 90 度並滿版顯示。
+
+## 歷史更新：Refactor - 影像策略精煉 (Phase 12)
 
 **目標**: 簡化影像生成策略，並提升預覽圖品質。
 
 **變更**:
-1.  **Unified Resolution**: 統一使用 **1920px (Q75)** 作為 Desktop 與 Mobile 的標準影像，移除額外的 `mobile` (800w) 版本。
-2.  **Better LQIP**: 將佔位符 (Placeholder) 尺寸從 20px 提升至 **200px (Q50)**，提供更清晰的模糊預覽 (`-small.webp`)。
-3.  **Cleanup**: 移除 `srcset` 相關邏輯與檔案 (`-tiny`, `-mobile`)。
-
----
+1.  **Unified Resolution**: 1920px (Q75).
+2.  **Better LQIP**: 200px (Q50).
+3.  **Cleanup**: Remove `srcset`.
 
 ## 歷史更新：Feature - 進階顯示與手機支援 (Phase 11)
 
@@ -18,7 +35,7 @@
 **實作**:
 - **Multi-resolution**: 支援 1920px 高解析度。
 - **Frontend Display**: 實作 Lazy Loading (Intersection Observer) 與 Blur-up。
-- **Mobile Rotation**: 全螢幕直向觀看橫圖時自動旋轉。
+- **Mobile Rotation**: 全螢幕直向觀看橫圖時自動旋轉 (初步實作)。
 
 ## 歷史更新：Fix - 封面圖片顯示 (Cover Image)
 
