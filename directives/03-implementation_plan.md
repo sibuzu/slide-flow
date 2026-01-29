@@ -29,9 +29,23 @@
 - 移除內部的「章節選擇」邏輯 (`subgroup && !chapterId` 的區塊)。
 - 此頁面將專注於播放功能，若進入 Subgroup 但未指定 chapterId，則重導向回 `/chapters/:id`。
 
+### 5. UI 風格重構 (Light Theme Redesign) [NEW]
+- **參考風格**: `123.sibuzu.com` (Light/Slate/Blue Theme)。
+- **全域樣式**:
+    - 背景: `#F8FAFC` (Slate 50)
+    - 文字: `#1E293B` (Slate 800) / `#475569` (Slate 600)
+    - 字體: Inter
+- **卡片風格 (HomeView & ChapterView)**:
+    - 背景: White
+    - 邊框: 1px `#E2E8F0` (Slate 200)
+    - 圓角: `rounded-2xl`
+    - 陰影: `shadow-sm` -> Hover `shadow-xl` + `translate-y`.
+    - 圖片比例: `aspect-video` (16:9).
+
 ## 驗證計畫 (Verification Plan)
 1. **測試 AlwaysRobusInfo**:
    - 首頁點擊 -> 進入章節頁 (看到 202512, party 卡片)。
    - 點擊 202512 -> 進入播放器，顯示該章節圖片。
 2. **測試 WalkingMap**:
    - 首頁點擊 -> 直接進入播放器。
+3. **視覺驗證**: 確認首頁與章節頁為淺色系，卡片具有懸浮效果。
