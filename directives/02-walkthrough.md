@@ -1,40 +1,38 @@
 # SlideFlow 開發與重構紀錄 (Walkthrough)
 
-## 最新更新：Fix - 導航邏輯與焦點控制 (Focus & Logic)
+## 最新更新：Build - 建置同步與清理 (Sync & Cleanup)
 
 **問題**:
-1.  **焦點缺失**: "Next Chapter" Prompt 出現時，使用者需按 Tab 或使用滑鼠才能點擊，無法直接按 Enter。
-2.  **章節循環錯誤**: 在特定順序下 (如 `202601` -> `party`)，Next Chapter 錯誤地跳回自己或前一章。
+1.  **檔案殘留**: 若從 `public` 刪除圖片，`dist` 中的對應 WebP 檔案未被刪除，導致發布檔案日益膨脹。
+2.  **垃圾檔案**: Windows 或 WSL 環境下可能產生 `Zone.Identifier` 等原資料檔案被複製到 `dist`。
 
 **解決**:
-1.  **Auto Focus**:
-    - 在 Prompt 出現時 (`showPrompt = true`)，使用 `setTimeout` 延遲 50ms 後自動 `focus()` "Next Chapter" 按鈕。
-    - 新增 Focus 樣式 (`focus:ring`) 提供視覺回饋。
-2.  **Logic Fix**:
-    - 修正 `currentChapterIndex` 計算方式，棄用 setup 階段的靜態 `chapterId`，改用 Reactive 的 `route.params.chapterId`。
-    - 確保在路由參數變更時，當前章節索引能正確更新，進而算出正確的 `nextChapterId`。
+1.  **Sync Clean**: 修改 `scripts/optimize-images.mjs`，在轉檔完成後執行清理程序。
+    - 掃描 `dist/sliders`。
+    - 若發現 `*.webp` 但對應的 `public` 原始圖檔已不存在，則同步刪除。
+    - 若發現 `*:Zone.Identifier` 檔案，一律刪除。
+    - **驗證結果**: 成功清除 12 個過期 WebP 檔案與 Zone.Identifier 中繼資料。
 
 ---
 
+## 歷史更新：Fix - 導航邏輯與焦點控制
+
+**焦點控制**: "Next Chapter" Prompt 出現時自動 Focus。
+**邏輯修正**: 修正 Chapter Index Reactivity。
+
 ## 歷史更新：Fix - 路由響應性與導航修正
 
-### 1. 路由響應 (Reactivity)
-- 修正 `slides` 計算依賴，確保切換章節時投影片列表更新。
-- 新增 `watch(route.params)` 以在組件重用時重新檢查路由邏輯 (Redirect / Query)。
+- **路由響應**: `watch(route.params)`。
 
 ## 歷史更新：Feature - 版面最大化與路由優化
 
-### 1. 版面優化 (Maximize Layout)
-- `w-full h-full` 全版面顯示。
-
-### 2. 路由優化 (Routing)
-- **Root Redirect**: Subgroup 自動導向至列表。
-- **Default Query**: 自動補上 `?slide=1`。
+- **版面**: Full Screen。
+- **路由**: Redirect / Default Query。
 
 ## 歷史更新：Feature - 導航同步與增強
 
 - **URL Sync**: `?slide=N`。
-- **鍵盤導航**: 全方向鍵，End Prompt。
+- **鍵盤導航**: 全方向鍵。
 
 ## 歷史更新：Fix - 導航控制與投影片篩選
 

@@ -35,3 +35,6 @@
 - [x] **Phase 8: 焦點與邏輯修復** <!-- id: 32 -->
     - [x] `SlideViewer.vue` 實作 autofocus on Prompt <!-- id: 33 -->
     - [x] 修正 `currentChapterIndex` 與 `nextChapterId` 邏輯 <!-- id: 34 -->
+- [x] **Phase 9: 建置同步與清理** <!-- id: 35 -->
+    - [x] `scripts/optimize-images.mjs` 刪除 dist 中多餘的 WebP <!-- id: 36 -->
+    - [x] `scripts/optimize-images.mjs` 處理 Zone.Identifier 檔案 <!-- id: 37 -->

@@ -66,7 +66,36 @@ async function convertToWebp() {
             // process.stdout.write('.'); // Moved to logic blocks
         }
 
-        console.log('\n✨ Image optimization complete!');
+        console.log('\n🧹 Starting cleanup...');
+
+        // Scan dist/sliders for cleanup
+        const distFiles = await glob(`${outputDir}/**/*`);
+        let removedCount = 0;
+
+        for (const distFile of distFiles) {
+            // 1. Remove Zone.Identifier files
+            if (distFile.includes(':Zone.Identifier')) {
+                fs.unlinkSync(distFile);
+                console.log(`🗑️  Deleted metadata: ${distFile}`);
+                removedCount++;
+                continue;
+            }
+
+            // 2. Sync Deletion: If WebP exists in dist but PNG missing in public
+            if (distFile.endsWith('.webp')) {
+                const relativePath = path.relative(outputDir, distFile);
+                // Assuming 1:1 mapping from png to webp as per previous logic
+                const sourcePng = path.join(inputDir, relativePath).replace(/\.webp$/i, '.png');
+
+                if (!fs.existsSync(sourcePng)) {
+                    fs.unlinkSync(distFile);
+                    console.log(`🗑️  Deleted stale file: ${distFile}`);
+                    removedCount++;
+                }
+            }
+        }
+
+        console.log(`\n✨ Image optimization & cleanup complete! (${removedCount} files removed)`);
     } catch (error) {
         console.error('❌ Image optimization failed:', error);
         process.exit(1);

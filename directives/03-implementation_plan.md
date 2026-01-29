@@ -46,7 +46,13 @@
 ### 7. 焦點與邏輯修復 (Focus & Logic Fixes) [NEW]
 - **SlideViewer.vue**:
     - **Auto Focus**: 當顯示 "Next Chapter" Prompt 時，自動將焦點移至 Next Chapter 按鈕，支援 Enter 操作。
-    - **Chapter Logic**: 修正 `nextChapterId` 計算與路由響應邏輯，確保能正確跳轉至 `party` 章節 (debug 排序或 reactivity 問題)。
+    - **Chapter Logic**: 修正 `currentChapterIndex` 計算與路由響應邏輯，確保能正確跳轉至 `party` 章節 (debug 排序或 reactivity 問題)。
+
+### 8. 建置同步與清理 (Build Sync & Cleanup) [NEW]
+- **scripts/optimize-images.mjs**:
+    - **Sync Clean**: 在優化結束後，遍歷 `dist/sliders`。
+        - 若 `dist` 中的 WebP 對應的原始圖片 (PNG/JPG) 在 `public` 已不存在，則刪除該 WebP。
+        - 若 `dist` 中存在 `Zone.Identifier` 檔案，一律刪除。
 
 ## 驗證計畫 (Verification Plan)
 1. **Dev**: `npm run dev`
@@ -59,3 +65,8 @@
     - 檢查投影片是否填滿可用空間。
     - 檢查 Prompt 出現時，按 Enter 是否觸發 Next Chapter。
     - 檢查 `202601` -> `party` 是否正常跳轉。
+2. **Build Sync**:
+    - 建立 `public/sliders/test_del.png`，執行 `npm run build`。
+    - 確認 `dist/sliders/test_del.webp` 存在。
+    - 刪除 `public/sliders/test_del.png`，再次執行 `npm run build`。
+    - 確認 `dist/sliders/test_del.webp` 已被刪除。
