@@ -150,20 +150,48 @@ const onSwiperRef = (s) => {
     emit('swiper', s)
 }
 
+// Preload Logic
+const preloadSlides = (index) => {
+    // Current slide
+    if (index >= 0 && index < props.slides.length) {
+        isVisible.value[index] = true
+    }
+    
+    // Preload next 3 slides
+    const start = index + 1
+    const end = Math.min(index + 4, props.slides.length)
+    
+    for (let i = start; i < end; i++) {
+        isVisible.value[i] = true
+    }
+    
+    // Preload prev 1 slide (for back nav)
+    if (index - 1 >= 0) {
+        isVisible.value[index - 1] = true
+    }
+}
+
 // Watchers & Hooks
 watch(() => props.slides, () => {
     nextTick(() => {
         if (observer) {
             observer.disconnect()
-            isVisible.value = {} // Reset visibility on slide change? Or keep?
+            // Reset visibility on slide change? Or keep?
             // Usually we reset for new slides.
+            isVisible.value = {}
             initObserver()
+            // Initial preload
+            preloadSlides(activeIndex.value)
         }
     })
 })
 
+watch(activeIndex, (newVal) => {
+    emitRotationStatus()
+    preloadSlides(newVal)
+})
+
 watch(() => rotationStyles.value[activeIndex.value], emitRotationStatus, { deep: true })
-watch(activeIndex, emitRotationStatus)
 watch(swiperDirection, (newDir) => {
     if (swiperInstance) {
         swiperInstance.changeDirection(newDir)
@@ -178,7 +206,10 @@ onMounted(() => {
     updateDeviceState()
     
     // Wait for swiper dom
-    nextTick(initObserver)
+    nextTick(() => {
+        initObserver()
+        preloadSlides(activeIndex.value)
+    })
 })
 
 onUnmounted(() => {
