@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSlideStore } from '../stores/slide'
 import SwiperComponent from '../components/SwiperComponent.vue'
@@ -29,6 +29,14 @@ const nextChapterId = computed(() => {
     return null
 })
 
+const prevChapterId = computed(() => {
+    if (currentChapterIndex.value === -1) return null
+    if (currentChapterIndex.value > 0) {
+        return presentation.value.chapters[currentChapterIndex.value - 1].id
+    }
+    return null
+})
+
 const slides = computed(() => {
     if (!presentation.value) return []
     const cId = route.params.chapterId // Access reactive route params directly
@@ -46,7 +54,9 @@ const slides = computed(() => {
 
 const currentSlideIndex = ref(0)
 const showPrompt = ref(false)
+const promptType = ref('next') // 'next' or 'prev'
 const swiperInstance = ref(null)
+const isLoadingChapter = ref(false)
 
 const isEnd = computed(() => {
     return currentSlideIndex.value >= slides.value.length - 1
@@ -70,25 +80,61 @@ watch(currentSlideIndex, (newVal) => {
 })
 
 // Check Query on Mount/Change
-watch(() => route.query.slide, (newVal) => {
-    if (newVal && !isNaN(newVal)) {
-        const idx = parseInt(newVal) - 1
-        if (idx >= 0 && idx < slides.value.length && idx !== currentSlideIndex.value) {
+const syncIndexFromQuery = () => {
+    const newVal = route.query.slide
+    if (newVal) {
+        let idx = 0;
+        if (newVal === 'last') {
+            idx = Math.max(0, slides.value.length - 1)
+        } else if (!isNaN(newVal)) {
+            idx = parseInt(newVal) - 1
+        }
+
+        // Clamp index
+        if (idx < 0) idx = 0
+        if (slides.value.length > 0 && idx >= slides.value.length) idx = slides.value.length - 1
+
+        if (idx !== currentSlideIndex.value) {
             currentSlideIndex.value = idx
-            if (swiperInstance.value) {
+            // Try to sync swiper if exists
+            if (swiperInstance.value && !swiperInstance.value.destroyed) {
                 swiperInstance.value.slideTo(idx, 0)
             }
         }
     }
-}, { immediate: true })
+}
+
+watch(() => route.query.slide, syncIndexFromQuery, { immediate: true })
+watch(slides, syncIndexFromQuery)
+
+// ... (Watchers)
 
 const nextBtnRef = ref(null)
 
+const onSwiperInit = (s) => {
+    swiperInstance.value = s
+    if (currentSlideIndex.value > 0) {
+        // Enforce initial position in case prop was ignored or overwritten
+        s.slideTo(currentSlideIndex.value, 0)
+    }
+}
+
 const onAttemptNext = () => {
     if (nextChapterId.value) {
+        promptType.value = 'next'
         showPrompt.value = true
         // Focus next tick
         setTimeout(() => {
+            nextBtnRef.value?.focus()
+        }, 50)
+    }
+}
+
+const onAttemptPrev = () => {
+    if (prevChapterId.value) {
+        promptType.value = 'prev'
+        showPrompt.value = true
+         setTimeout(() => {
             nextBtnRef.value?.focus()
         }, 50)
     }
@@ -106,7 +152,11 @@ const nextSlide = () => {
 
 const prevSlide = () => {
     if (!swiperInstance.value) return
-    swiperInstance.value.slidePrev()
+    if (swiperInstance.value.isBeginning) {
+        onAttemptPrev()
+    } else {
+        swiperInstance.value.slidePrev()
+    }
 }
 
 const goHome = () => router.push('/')
@@ -126,18 +176,27 @@ const onNextChapter = () => {
     }
 }
 
+const onPrevChapter = () => {
+    if (prevChapterId.value) {
+        showPrompt.value = false
+        // Push new route with slide=last
+        router.push(`/viewer/${id}/${prevChapterId.value}?slide=last`)
+    }
+}
+
 // ...
 
 // Watch params to handle chapter changes or re-renders
-watch(() => route.params, (newParams, oldParams) => {
+watch(() => route.params, async (newParams, oldParams) => {
     // Reset index if chapter changed
     if (newParams.chapterId !== oldParams?.chapterId) {
-        currentSlideIndex.value = 0
+        isLoadingChapter.value = true
+        await nextTick() // Allow computed slides to update
+        syncIndexFromQuery() // Recalc index (handle last)
+        isLoadingChapter.value = false
     }
 
     if (swiperInstance.value) {
-        // If swiper exists, the slide watcher below will handle index update via query
-        // But we need to ensure query is set
         checkRoute()
     }
 }, { deep: true })
@@ -208,19 +267,25 @@ onUnmounted(() => {
 
     <!-- Viewer -->
     <div v-else class="w-full h-full relative group">
+        <div v-if="isLoadingChapter" class="flex items-center justify-center w-full h-full text-white/50">
+             <!-- Optional spinner -->
+        </div>
         <SwiperComponent 
+            v-else
             :key="route.params.chapterId || route.params.id"
             :slides="slides" 
+            :initial-slide="currentSlideIndex"
             :orient="presentation.orient"
-            @swiper="(s) => swiperInstance = s"
+            @swiper="onSwiperInit"
             @slideChange="(idx) => currentSlideIndex = idx"
             @attemptNext="onAttemptNext"
+            @attemptPrev="onAttemptPrev"
             @rotationChanged="(v) => isRotated = v"
         />
         
         <!-- Custom Navigation Buttons -->
         <!-- Prev Button -->
-        <button v-show="currentSlideIndex > 0" @click="prevSlide" 
+        <button v-show="currentSlideIndex > 0 || prevChapterId" @click="prevSlide" 
                 class="absolute z-20 p-3 bg-black/50 rounded-full text-white hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                 :class="isRotated ? 'top-24 left-1/2 -translate-x-1/2 rotate-90' : 'top-1/2 left-4 -translate-y-1/2'">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
@@ -260,12 +325,18 @@ onUnmounted(() => {
             {{ currentSlideIndex + 1 }} / {{ slides.length }}
         </div>
 
-        <!-- Next Chapter Prompt (Lightweight) -->
+        <!-- Chapter Prompt (Dynamic) -->
         <div v-if="showPrompt" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex gap-4">
-             <button ref="nextBtnRef" @click="onNextChapter" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg font-bold flex items-center gap-2 transform hover:scale-105 transition-all focus:outline-none focus:ring-4 focus:ring-blue-400">
-                Next Chapter
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+             <button ref="nextBtnRef" @click="promptType === 'next' ? onNextChapter() : onPrevChapter()" 
+                     class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg font-bold flex items-center gap-2 transform hover:scale-105 transition-all focus:outline-none focus:ring-4 focus:ring-blue-400">
+                <span v-if="promptType === 'prev'">Previous Chapter</span>
+                <span v-else>Next Chapter</span>
+                
+                <svg v-if="promptType === 'next'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                 </svg>
              </button>
              <button @click="showPrompt = false" class="px-6 py-3 bg-neutral-800/80 hover:bg-neutral-800 text-white rounded-full shadow-lg backdrop-blur-sm border border-neutral-600">

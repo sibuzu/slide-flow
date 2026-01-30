@@ -57,3 +57,6 @@
     - [x] `SlideViewer.vue`: Apply rotation styles to Prev/Next buttons <!-- id: 54 -->
 - [x] **Phase 15: 滑動手勢旋轉支援** <!-- id: 55 -->
     - [x] `SwiperComponent.vue`: Bind `:direction` to computed property <!-- id: 56 -->
+- [x] **Phase 16: 上一章節導航支援** <!-- id: 57 -->
+    - [x] `SwiperComponent.vue`: Emit `attemptPrev` when keydown at start <!-- id: 58 -->
+    - [x] `SlideViewer.vue`: Handle `prevChapterId` and Prompt Logic <!-- id: 59 -->

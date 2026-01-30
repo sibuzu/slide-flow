@@ -15,11 +15,15 @@ const props = defineProps({
   orient: {
     type: String,
     default: 'landscape'
+  },
+  initialSlide: {
+    type: Number,
+    default: 0
   }
 })
 
 const modules = [Navigation, Pagination, Keyboard, EffectFade];
-const emit = defineEmits(['swiper', 'slideChange', 'attemptNext', 'rotationChanged'])
+const emit = defineEmits(['swiper', 'slideChange', 'attemptNext', 'rotationChanged', 'attemptPrev'])
 
 // State
 const loaded = ref({})
@@ -130,7 +134,10 @@ const initObserver = () => {
 const handleKeydown = (e) => {
     if (!swiperInstance) return
     // Left (37), Up (38), PgUp (33)
-    if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 33) swiperInstance.slidePrev()
+    if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 33) {
+        if (swiperInstance.isBeginning) emit('attemptPrev')
+        else swiperInstance.slidePrev()
+    }
     // Right (39), Down (40), PgDn (34)
     if (e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 34) {
         if (swiperInstance.isEnd) emit('attemptNext')
@@ -193,6 +200,7 @@ onUnmounted(() => {
             :speed="0"
             :slides-per-view="1" 
             :space-between="0" 
+            :initial-slide="initialSlide"
             :pagination="{ clickable: true }"
             class="w-full h-full"
             @swiper="onSwiperRef"
