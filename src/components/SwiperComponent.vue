@@ -129,8 +129,10 @@ const initObserver = () => {
 // Custom Key Handler
 const handleKeydown = (e) => {
     if (!swiperInstance) return
-    if (e.keyCode === 37 || e.keyCode === 38) swiperInstance.slidePrev()
-    if (e.keyCode === 39 || e.keyCode === 40) {
+    // Left (37), Up (38), PgUp (33)
+    if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 33) swiperInstance.slidePrev()
+    // Right (39), Down (40), PgDn (34)
+    if (e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 34) {
         if (swiperInstance.isEnd) emit('attemptNext')
         else swiperInstance.slideNext()
     }
@@ -192,7 +194,6 @@ onUnmounted(() => {
             :slides-per-view="1" 
             :space-between="0" 
             :pagination="{ clickable: true }"
-            :keyboard="{ enabled: true, onlyInViewport: false, pageUpDown: true }"
             class="w-full h-full"
             @swiper="onSwiperRef"
             @slideChange="(s) => { activeIndex = s.activeIndex; $emit('slideChange', s.activeIndex) }"

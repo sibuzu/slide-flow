@@ -1,6 +1,17 @@
 # SlideFlow 開發與重構紀錄 (Walkthrough)
 
-## 最新更新：Refactor - 導航體驗優化 (Instant Navigation)
+## 最新更新：Fix - 導航與狀態修復
+
+**目標**: 解決鍵盤導航重複觸發 (Double Jump) 與章節切換索引錯誤 (Wrong Slide Index) 問題。
+
+**修正**:
+1.  **Keyboard Conflict**: 禁用 Swiper 內建鍵盤模組，統一由全域 `handleKeydown` 處理 Left/Right/PgUp/PgDn，解決一次跳兩頁的問題。
+2.  **Navigation Logic**: 修正 `onNextChapter` 邏輯，移除錯誤的預先 Reset Index，改由 `watch(route.params)` 監聽 Chapter ID 變更時才執行 Reset。
+3.  **State Reset**: 為 `SwiperComponent` 綁定 `:key="chapterId"`，強制在章節切換時重新渲染組件，確保狀態完全重置。
+
+---
+
+## 歷史更新：Refactor - 導航體驗優化 (Instant Navigation)
 
 **目標**: 消除投影片切換時的疊圖殘影 (Ghosting/Overlap) 以及手勢操作的不順暢感。
 
@@ -9,8 +20,6 @@
     -   效果：切換投影片時如按鈕般即時反應，無過場動畫，徹底解決疊圖問題。
 2.  **Absolute Positioning**: 將偽旋轉圖片的定位由 `fixed` 改為 `absolute`，確保其受 Swiper 容器控制。
 3.  **Explicit Direction Control**: 使用 `swiper.changeDirection()` 明確控制滑動方向切換。
-
----
 
 ## 歷史更新：Refactor - 滑動手勢旋轉支援 (Phase 15)
 

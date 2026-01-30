@@ -122,9 +122,25 @@ const onNextChapter = () => {
     if (nextChapterId.value) {
         showPrompt.value = false
         // Push new route, router watcher should handle the rest
-        router.push(`/viewer/${id}/${nextChapterId.value}`)
+        router.push(`/viewer/${id}/${nextChapterId.value}?slide=1`)
     }
 }
+
+// ...
+
+// Watch params to handle chapter changes or re-renders
+watch(() => route.params, (newParams, oldParams) => {
+    // Reset index if chapter changed
+    if (newParams.chapterId !== oldParams?.chapterId) {
+        currentSlideIndex.value = 0
+    }
+
+    if (swiperInstance.value) {
+        // If swiper exists, the slide watcher below will handle index update via query
+        // But we need to ensure query is set
+        checkRoute()
+    }
+}, { deep: true })
 
 // Fullscreen
 const isFullscreen = ref(false)
@@ -158,7 +174,12 @@ const checkRoute = () => {
 }
 
 // Watch params to handle chapter changes or re-renders
-watch(() => route.params, () => {
+watch(() => route.params, (newParams, oldParams) => {
+    // Reset index if chapter changed
+    if (newParams.chapterId !== oldParams?.chapterId) {
+        currentSlideIndex.value = 0
+    }
+
     // Reset if chapter changed
     if (swiperInstance.value) {
         // If swiper exists, the slide watcher below will handle index update via query
@@ -188,6 +209,7 @@ onUnmounted(() => {
     <!-- Viewer -->
     <div v-else class="w-full h-full relative group">
         <SwiperComponent 
+            :key="route.params.chapterId || route.params.id"
             :slides="slides" 
             :orient="presentation.orient"
             @swiper="(s) => swiperInstance = s"
