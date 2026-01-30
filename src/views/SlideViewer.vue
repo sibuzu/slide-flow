@@ -319,7 +319,8 @@ onUnmounted(() => {
         </div>
 
         <!-- Chapter Prompt (Dynamic) -->
-        <div v-if="showPrompt" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex gap-4">
+        <div v-if="showPrompt" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex gap-4 transition-transform duration-300"
+             :class="{ 'rotate-90': isRotated }">
              <button ref="nextBtnRef" @click="promptType === 'next' ? onNextChapter() : onPrevChapter()" 
                      class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg font-bold flex items-center gap-2 transform hover:scale-105 transition-all focus:outline-none focus:ring-4 focus:ring-blue-400">
                 <span v-if="promptType === 'prev'">Previous Chapter</span>
