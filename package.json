@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/optimize-images.mjs",
+    "pdf:build": "uv run python tools/convert_pdf.py --dir public",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -10,21 +10,27 @@ const route = useRoute()
 const router = useRouter()
 const store = useSlideStore()
 
-const id = route.params.id
-const chapterId = route.params.chapterId
+const presentation = computed(() => store.findNode(route.params.id))
 
-const presentation = computed(() => store.manifest.find(p => p.id === id))
+// To find previous/next chapters, we need to find the PARENT of the current node
+const parentNode = computed(() => {
+    if (!presentation.value) return null
+    // Parent ID is everything before the last slash
+    const parts = presentation.value.id.split('/')
+    if (parts.length <= 1) return null // Root level, no parent
+    const parentId = parts.slice(0, -1).join('/')
+    return store.findNode(parentId)
+})
 
 const currentChapterIndex = computed(() => {
-    if (!presentation.value?.chapters) return -1
-    const cId = route.params.chapterId
-    return presentation.value.chapters.findIndex(c => c.id === cId)
+    if (!parentNode.value || !parentNode.value.children) return -1
+    return parentNode.value.children.findIndex(c => c.id === presentation.value.id)
 })
 
 const nextChapterId = computed(() => {
     if (currentChapterIndex.value === -1) return null
-    if (currentChapterIndex.value < presentation.value.chapters.length - 1) {
-        return presentation.value.chapters[currentChapterIndex.value + 1].id
+    if (currentChapterIndex.value < parentNode.value.children.length - 1) {
+        return parentNode.value.children[currentChapterIndex.value + 1].id
     }
     return null
 })
@@ -32,24 +38,15 @@ const nextChapterId = computed(() => {
 const prevChapterId = computed(() => {
     if (currentChapterIndex.value === -1) return null
     if (currentChapterIndex.value > 0) {
-        return presentation.value.chapters[currentChapterIndex.value - 1].id
+        return parentNode.value.children[currentChapterIndex.value - 1].id
     }
     return null
 })
 
 const slides = computed(() => {
     if (!presentation.value) return []
-    const cId = route.params.chapterId // Access reactive route params directly
-    
-    let rawSlides = []
-    if (presentation.value.subgroup && cId) {
-        const chapter = presentation.value.chapters.find(c => c.id === cId)
-        rawSlides = chapter ? chapter.slides : []
-    } else {
-        rawSlides = presentation.value.slides || []
-    }
-
-    return rawSlides.map(getImagePath)
+    // Presentation is now always a 'deck' if we are here
+    return (presentation.value.slides || []).map(getImagePath)
 })
 
 const currentSlideIndex = ref(0)
@@ -161,8 +158,8 @@ const prevSlide = () => {
 
 const goHome = () => router.push('/')
 const goBack = () => {
-    if (presentation.value?.subgroup && chapterId) {
-        router.push(`/chapters/${id}`) // Back to chapter list
+    if (parentNode.value) {
+        router.push(`/chapters/${parentNode.value.id}`)
     } else {
         router.push('/')
     }
@@ -172,7 +169,7 @@ const onNextChapter = () => {
     if (nextChapterId.value) {
         showPrompt.value = false
         // Push new route, router watcher should handle the rest
-        router.push(`/viewer/${id}/${nextChapterId.value}?slide=1`)
+        router.push(`/viewer/${nextChapterId.value}?slide=1`)
     }
 }
 
@@ -180,16 +177,17 @@ const onPrevChapter = () => {
     if (prevChapterId.value) {
         showPrompt.value = false
         // Push new route with slide=last
-        router.push(`/viewer/${id}/${prevChapterId.value}?slide=last`)
+        router.push(`/viewer/${prevChapterId.value}?slide=last`)
     }
 }
 
 // ...
 
 // Watch params to handle chapter changes or re-renders
-watch(() => route.params, async (newParams, oldParams) => {
-    // Reset index if chapter changed
-    if (newParams.chapterId !== oldParams?.chapterId) {
+// Watch params to handle chapter changes or re-renders
+watch(() => route.params.id, async (newId, oldId) => {
+    // Reset index if chapter changed (ID changed)
+    if (newId !== oldId) {
         isLoadingChapter.value = true
         await nextTick() // Allow computed slides to update
         syncIndexFromQuery() // Recalc index (handle last)
@@ -199,7 +197,7 @@ watch(() => route.params, async (newParams, oldParams) => {
     if (swiperInstance.value) {
         checkRoute()
     }
-}, { deep: true })
+})
 
 // Fullscreen
 const isFullscreen = ref(false)
@@ -220,12 +218,6 @@ const onFsChange = () => {
 
 // Route Check & Initialization
 const checkRoute = () => {
-    // Check Subgroup Root Redirect
-    if (presentation.value?.subgroup && !route.params.chapterId) {
-        router.replace(`/chapters/${id}`)
-        return
-    }
-
     // Default Query Param ?slide=1
     if (!route.query.slide) {
         router.replace({ ...route, query: { ...route.query, slide: 1 } })
@@ -233,9 +225,9 @@ const checkRoute = () => {
 }
 
 // Watch params to handle chapter changes or re-renders
-watch(() => route.params, (newParams, oldParams) => {
+watch(() => route.params.id, (newId, oldId) => {
     // Reset index if chapter changed
-    if (newParams.chapterId !== oldParams?.chapterId) {
+    if (newId !== oldId) {
         currentSlideIndex.value = 0
     }
 
@@ -245,7 +237,7 @@ watch(() => route.params, (newParams, oldParams) => {
         // But we need to ensure query is set
         checkRoute()
     }
-}, { deep: true })
+})
 
 onMounted(() => {
     document.addEventListener('fullscreenchange', onFsChange)
@@ -262,6 +254,7 @@ onUnmounted(() => {
   <div class="h-screen w-screen bg-black overflow-hidden relative group"> 
     <div v-if="!presentation" class="flex flex-col items-center justify-center h-full text-white">
         <p>Loading or Presentation Not Found...</p>
+        <p class="text-xs text-gray-500 mt-2">ID: {{ route.params.id }}</p>
         <button @click="goHome" class="mt-4 px-4 py-2 bg-neutral-700 rounded">Go Home</button>
     </div>
 
@@ -272,7 +265,7 @@ onUnmounted(() => {
         </div>
         <SwiperComponent 
             v-else
-            :key="route.params.chapterId || route.params.id"
+            :key="route.params.id"
             :slides="slides" 
             :initial-slide="currentSlideIndex"
             :orient="presentation.orient"

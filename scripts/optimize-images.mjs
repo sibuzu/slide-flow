@@ -16,15 +16,21 @@ async function convertToWebp() {
             fs.mkdirSync(outputDir, { recursive: true });
         }
 
-        // Find all PNG files in public/sliders or dist/sliders
-        const files = await glob(`${inputDir}/**/*.png`);
+        // Find all image files in public/sliders (png, jpg, jpeg, webp)
+        const files = await glob(`${inputDir}/**/*.{png,jpg,jpeg,webp}`);
 
-        console.log(`Found ${files.length} PNG files to optimize.`);
+        console.log(`Found ${files.length} image files to optimize.`);
 
         for (const file of files) {
             const relativePath = path.relative(inputDir, file);
+            const ext = path.extname(file).toLowerCase();
+            const fileName = path.basename(file, ext);
+            // Identify cover files
+            const isCover = fileName.toLowerCase().startsWith('cover');
+
             // Construct target paths
-            const targetPath = path.join(outputDir, relativePath).replace(/\.png$/i, '.webp');
+            // Always output .webp
+            const targetPath = path.join(outputDir, relativePath).replace(new RegExp(`${ext}$`, 'i'), '.webp');
             const targetSmallPath = targetPath.replace(/\.webp$/, '-small.webp');
 
             const targetFolder = path.dirname(targetPath);
@@ -34,42 +40,77 @@ async function convertToWebp() {
                 fs.mkdirSync(targetFolder, { recursive: true });
             }
 
-            // Check if conversion is needed
-            let needsConversion = true;
-            if (fs.existsSync(targetPath) && fs.existsSync(targetSmallPath)) {
+            // Check if processing is needed
+            let needsProcessing = true;
+
+            // For covers, we don't expect a small file. For others, we do.
+            const allTargetsExist = isCover
+                ? fs.existsSync(targetPath)
+                : (fs.existsSync(targetPath) && fs.existsSync(targetSmallPath));
+
+            if (allTargetsExist) {
                 const sourceStats = fs.statSync(file);
                 const targetStats = fs.statSync(targetPath);
-                const targetSmallStats = fs.statSync(targetSmallPath);
+
+                // If not cover, also check small file stats
+                let targetsNewer = targetStats.mtime > sourceStats.mtime;
+
+                if (!isCover && targetsNewer) {
+                    const targetSmallStats = fs.statSync(targetSmallPath);
+                    targetsNewer = targetsNewer && (targetSmallStats.mtime > sourceStats.mtime);
+                }
 
                 // If targets are newer than source, skip
-                if (targetStats.mtime > sourceStats.mtime && targetSmallStats.mtime > sourceStats.mtime) {
-                    needsConversion = false;
+                if (targetsNewer) {
+                    needsProcessing = false;
                     process.stdout.write('s'); // s = skipped
                 }
             }
 
-            if (needsConversion) {
+            if (needsProcessing) {
                 const sharpInstance = sharp(file);
-                // Main Image (Unified): Resize to max 1920x1920, Quality 75
-                await sharpInstance.clone()
-                    .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
-                    .webp({ quality: 75, effort: 6 })
-                    .toFile(targetPath);
 
-                // Small Image (LQIP): Resize to width 200, Quality 50
-                // Increased to 200px for better preview quality
-                await sharpInstance.clone()
-                    .resize({ width: 200 })
-                    .webp({ quality: 50, effort: 4 })
-                    .toFile(targetSmallPath);
+                if (isCover) {
+                    // Cover Image: Resize to width 800, Quality 80
+                    // No small variant generated
+                    await sharpInstance
+                        .resize({ width: 800, withoutEnlargement: true })
+                        .webp({ quality: 80, effort: 6 })
+                        .toFile(targetPath);
 
-                process.stdout.write('.'); // . = converted
-            }
+                    // If a stale small file exists for cover, remove it (cleanup)
+                    if (fs.existsSync(targetSmallPath)) {
+                        fs.unlinkSync(targetSmallPath);
+                    }
+                } else {
+                    // Standard Slides
+                    // If source is already WebP, copy main image directly (assume optimized 1920px)
+                    if (ext === '.webp') {
+                        fs.copyFileSync(file, targetPath);
 
-            // Remove original PNG from dist to save space
-            const distPngPath = path.join(outputDir, relativePath);
-            if (fs.existsSync(distPngPath)) {
-                fs.unlinkSync(distPngPath);
+                        // Generate small version only
+                        await sharp(file)
+                            .resize({ width: 200 })
+                            .webp({ quality: 50, effort: 4 })
+                            .toFile(targetSmallPath);
+                    } else {
+                        // For others (png, jpg), convert and optimize
+
+                        // Main Image: Resize to max 1920x1920, Quality 75
+                        await sharpInstance.clone()
+                            .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
+                            .webp({ quality: 75, effort: 6 })
+                            .toFile(targetPath);
+
+                        // Small Image (LQIP): Resize to width 200, Quality 50
+                        await sharpInstance.clone()
+                            .resize({ width: 200 })
+                            .webp({ quality: 50, effort: 4 })
+                            .toFile(targetSmallPath);
+                    }
+                }
+
+                process.stdout.write('.'); // . = converted/copied
             }
         }
 
@@ -88,10 +129,9 @@ async function convertToWebp() {
                 continue;
             }
 
-            // 2. Sync Deletion: If WebP exists in dist but PNG missing in public
+            // 2. Sync Deletion: If WebP exists in dist but source missing in public
             if (distFile.endsWith('.webp')) {
                 const relativePath = path.relative(outputDir, distFile);
-                let sourcePng = '';
 
                 // Clean up deprecated variants
                 if (distFile.endsWith('-tiny.webp') || distFile.endsWith('-mobile.webp')) {
@@ -101,18 +141,37 @@ async function convertToWebp() {
                     continue;
                 }
 
-                // Handle standard variants
+                // Determine potential source file path (ignore extension)
+                // We check if ANY supported source file exists for this output
+                let relativeBaseName = '';
                 if (distFile.endsWith('-small.webp')) {
-                    sourcePng = path.join(inputDir, relativePath).replace(/-small\.webp$/, '.png');
+                    relativeBaseName = relativePath.replace(/-small\.webp$/, '');
                 } else {
-                    sourcePng = path.join(inputDir, relativePath).replace(/\.webp$/, '.png');
+                    relativeBaseName = relativePath.replace(/\.webp$/, '');
                 }
 
-                if (!fs.existsSync(sourcePng)) {
+                // Check against supported extensions
+                const possibleExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
+                let sourceExists = false;
+
+                for (const ext of possibleExtensions) {
+                    const possibleSource = path.join(inputDir, relativeBaseName + ext);
+                    if (fs.existsSync(possibleSource)) {
+                        sourceExists = true;
+                        break;
+                    }
+                }
+
+                if (!sourceExists) {
                     fs.unlinkSync(distFile);
                     console.log(`🗑️  Deleted stale file: ${distFile}`);
                     removedCount++;
                 }
+            } else if (distFile.endsWith('.png') || distFile.endsWith('.jpg') || distFile.endsWith('.jpeg')) {
+                // Remove copied raw assets (like original PNGs that vite might have processed/copied if configured, 
+                // though strictly we are manually handling this dir, removing them is safe if we strictly use webp)
+                fs.unlinkSync(distFile);
+                removedCount++;
             }
         }
 

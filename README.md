@@ -85,12 +85,15 @@ public/sliders/course101/
 
 ### 1. PDF 轉圖片
 
-將 PDF 轉換為適合 SlideFlow 使用的 png 圖片序列。
+將所有 `public/` 目錄下 (含子目錄) 的 PDF 轉換為適合 SlideFlow 使用的 WebP 圖片序列與目錄結構。
 
 ```bash
-# 用法: python tools/convert_pdf.py <input_pdf> --output <output_dir>
-python tools/convert_pdf.py my_slides.pdf --output public/sliders/myslides
+# 自動掃描 public/ 下的所有 PDF 並轉換
+npm run pdf:build
 ```
+
+這會在 PDF 所在的相同目錄下，產生一個同名的資料夾（包含 `config.json`, `cover.webp` 與投影片圖片）。
+若該資料夾已存在且包含 `config.json` 與 `cover.webp`，則會自動跳過。
 
 ### 2. 生成索引 (Generate Manifest)
 

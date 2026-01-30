@@ -40,51 +40,44 @@ export default function SlideLoaderPlugin() {
         return {}; // Default empty config
     };
 
-    const scanSlides = () => {
-        const root = path.resolve(slidersDir);
-        if (!fs.existsSync(root)) return [];
+    const scanRecursive = (dir, parentId = '') => {
+        if (!fs.existsSync(dir)) return [];
 
-        const items = fs.readdirSync(root).filter(f => fs.statSync(path.join(root, f)).isDirectory());
+        const items = fs.readdirSync(dir)
+            .filter(f => fs.statSync(path.join(dir, f)).isDirectory())
+            .sort();
 
         return items.map(itemName => {
-            const itemPath = path.join(root, itemName);
+            const itemPath = path.join(dir, itemName);
             const config = loadConfig(itemPath);
             const cover = getCover(itemPath);
 
-            const entry = {
-                id: itemName,
-                title: config.title || itemName,
-                orient: config.orient || 'landscape',
-                subgroup: !!config.subgroup,
-                cover: cover ? `/sliders/${itemName}/${cover}` : null,
-            };
+            // Construct new ID (relative path)
+            const id = parentId ? `${parentId}/${itemName}` : itemName;
+            const coverPath = cover ? `/sliders/${id}/${cover}` : null;
 
             if (config.subgroup) {
-                // Scan chapters (subdirectories)
-                const chapters = fs.readdirSync(itemPath)
-                    .filter(f => fs.statSync(path.join(itemPath, f)).isDirectory())
-                    .sort(); // Sort chapters typically by name (e.g., 202512, 202601)
-
-                entry.chapters = chapters.map(chapName => {
-                    const chapPath = path.join(itemPath, chapName);
-                    const chapConfig = loadConfig(chapPath);
-                    const cover = getCover(chapPath);
-                    const images = getImages(chapPath);
-
-                    return {
-                        id: chapName,
-                        title: chapConfig.title || chapName,
-                        cover: cover ? `/sliders/${itemName}/${chapName}/${cover}` : null,
-                        slides: images.map(img => `/sliders/${itemName}/${chapName}/${img}`)
-                    };
-                });
+                // It's a Group (Directory of directories)
+                const children = scanRecursive(itemPath, id);
+                return {
+                    id,
+                    title: config.title || itemName,
+                    type: 'group',
+                    cover: coverPath,
+                    children
+                };
             } else {
-                // Flat structure
+                // It's a Deck (Directory of images)
                 const images = getImages(itemPath);
-                entry.slides = images.map(img => `/sliders/${itemName}/${img}`);
+                return {
+                    id,
+                    title: config.title || itemName,
+                    type: 'deck',
+                    orient: config.orient || 'landscape',
+                    cover: coverPath,
+                    slides: images.map(img => `/sliders/${id}/${img}`)
+                };
             }
-
-            return entry;
         });
     };
 
@@ -97,7 +90,9 @@ export default function SlideLoaderPlugin() {
         },
         load(id) {
             if (id === resolvedVirtualModuleId) {
-                const data = scanSlides();
+                const root = path.resolve(slidersDir);
+                // Start scanning from root
+                const data = scanRecursive(root);
                 return `export default ${JSON.stringify(data)}`;
             }
         },

@@ -24,7 +24,7 @@ onMounted(() => {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <div v-for="item in manifest" :key="item.id" 
            class="bg-white border border-slate-200 rounded-2xl overflow-hidden card-hover cursor-pointer flex flex-col h-full"
-           @click="item.subgroup ? $router.push({ name: 'chapters', params: { id: item.id } }) : $router.push({ name: 'viewer', params: { id: item.id } })">
+           @click="item.type === 'group' ? $router.push({ name: 'chapters', params: { id: item.id } }) : $router.push({ name: 'viewer', params: { id: item.id } })">
         
         <!-- Image Wrapper -->
         <div class="aspect-video relative border-b border-slate-100 bg-slate-50 overflow-hidden">
@@ -39,7 +39,7 @@ onMounted(() => {
           <h2 class="text-xl font-bold text-slate-800 mb-2 truncate">{{ item.title }}</h2>
           <!-- Action Footer -->
           <div class="flex items-center text-blue-500 font-semibold text-sm mt-auto">
-             <span>{{ item.subgroup ? 'Browse Chapters' : 'View Slides' }}</span>
+             <span>{{ item.type === 'group' ? 'Browse Chapters' : 'View Slides' }}</span>
              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
             </svg>

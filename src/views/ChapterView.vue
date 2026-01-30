@@ -8,8 +8,8 @@ const route = useRoute()
 const router = useRouter()
 const store = useSlideStore()
 
-const id = route.params.id
-const presentation = computed(() => store.manifest.find(p => p.id === id))
+const presentation = computed(() => store.findNode(route.params.id))
+const id = computed(() => route.params.id) // Keep id for potential template usage if needed, or remove if unused
 
 const goHome = () => router.push('/')
 </script>
@@ -36,9 +36,9 @@ const goHome = () => router.push('/')
 
         <!-- Chapters Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div v-for="chap in presentation.chapters" :key="chap.id"
+            <div v-for="chap in presentation.children" :key="chap.id"
                  class="bg-white border border-slate-200 rounded-2xl overflow-hidden card-hover cursor-pointer flex flex-col h-full group"
-                 @click="router.push(`/viewer/${id}/${chap.id}`)">
+                 @click="chap.type === 'group' ? $router.push(`/chapters/${chap.id}`) : $router.push(`/viewer/${chap.id}`)">
                 
                 <!-- Thumbnails Preview (Cover or First 3 slides) -->
                 <div class="aspect-video bg-slate-50 relative overflow-hidden border-b border-slate-100 group-hover:opacity-90 transition-opacity">
@@ -55,10 +55,10 @@ const goHome = () => router.push('/')
 
                 <div class="p-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-2">{{ chap.title }}</h2>
-                    <p class="text-slate-500 text-sm mb-4">{{ chap.slides.length }} slides</p>
+                    <p class="text-slate-500 text-sm mb-4">{{ chap.type === 'deck' ? chap.slides.length + ' slides' : chap.children.length + ' items' }}</p>
                     
                     <div class="flex items-center text-blue-500 font-semibold text-sm mt-auto">
-                        <span>Play Chapter</span>
+                        <span>{{ chap.type === 'group' ? 'Browse' : 'Play' }}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
                            <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
                        </svg>

@@ -9,9 +9,11 @@
 export const getImagePath = (path) => {
     if (!path) return { src: '', placeholder: null };
 
-    // Only optimize in production and if it is a png
-    if (import.meta.env.PROD && path.toLowerCase().endsWith('.png')) {
-        const base = path.replace(/\.png$/i, '');
+    // Only optimize in production
+    // We expect the build script to have converted everything to WebP
+    if (import.meta.env.PROD) {
+        // Replace extension with .webp
+        const base = path.replace(/\.(png|jpg|jpeg|webp)$/i, '');
         return {
             src: `${base}.webp`,
             placeholder: `${base}-small.webp`

@@ -12,20 +12,15 @@ const router = createRouter({
             component: HomeView
         },
         {
-            path: '/chapters/:id',
+            path: '/chapters/:id(.*)',
             name: 'chapters',
             component: ChapterView
         },
         {
-            path: '/viewer/:id',
+            path: '/viewer/:id(.*)',
             name: 'viewer',
             component: SlideViewer
         },
-        {
-            path: '/viewer/:id/:chapterId',
-            name: 'viewer-chapter',
-            component: SlideViewer
-        }
     ]
 })
 
