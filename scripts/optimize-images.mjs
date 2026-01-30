@@ -167,9 +167,10 @@ async function convertToWebp() {
                     console.log(`🗑️  Deleted stale file: ${distFile}`);
                     removedCount++;
                 }
-            } else if (distFile.endsWith('.png') || distFile.endsWith('.jpg') || distFile.endsWith('.jpeg')) {
+            } else if (distFile.endsWith('.png') || distFile.endsWith('.jpg') || distFile.endsWith('.jpeg') || distFile.endsWith('.pdf')) {
                 // Remove copied raw assets (like original PNGs that vite might have processed/copied if configured, 
                 // though strictly we are manually handling this dir, removing them is safe if we strictly use webp)
+                // Also remove PDF files as requested
                 fs.unlinkSync(distFile);
                 removedCount++;
             }
